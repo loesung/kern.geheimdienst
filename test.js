@@ -18,7 +18,7 @@ IPCClient.request(
 );*/
 
 var symcrypt = require('./lib/symcrypt')($);
-var l = 1024 * 1;
+var l = 1024 * 10240;
 $.nodejs.crypto.pseudoRandomBytes(l, function(err, plaintext){
     var b = new Date().getTime();
     symcrypt.encrypt('abcdefg', plaintext, function(err, got){
