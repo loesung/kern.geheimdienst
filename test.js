@@ -1,6 +1,6 @@
 require('./lib/baum.js');
 CONFIG = $.config.createConfig('./config/');
-var socketPath = CONFIG.get('socket-path');
+/*var socketPath = CONFIG.get('socket-path');
 
 var IPCClient = $.net.IPC.client(socketPath);
 
@@ -15,4 +15,9 @@ IPCClient.request(
             });
         };
     }
-);
+);*/
+
+var symcrypt = require('./lib/symcrypt')($);
+symcrypt.encrypt('abcdefg', 'abcdefg', function(err, got){
+    console.log(err, got);
+});
