@@ -18,14 +18,32 @@ IPCClient.request(
 );*/
 
 var symcrypt = require('./lib/symcrypt')($);
-var l = 1024 * 10240;
-$.nodejs.crypto.pseudoRandomBytes(l, function(err, plaintext){
-    var b = new Date().getTime();
-    symcrypt.encrypt('abcdefg', plaintext, function(err, got){
-        var e = new Date().getTime();
-        console.log(err, got);
-        console.log(got.length);
-        console.log('Costed ' + (e-b) + ' milliseconds.');
-        console.log('Speed', l * 1000.0 / 1024 / (e-b), 'kBytes/second');
-    });
-});
+var l = 1024;
+
+$.nodejs.async.waterfall(
+    [
+        function(callback){
+            callback(null, 'testthingsakkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk!');
+            //$.nodejs.crypto.pseudoRandomBytes(l, callback);
+        },
+
+        function(got, callback){
+            symcrypt.encrypt('abcdefg', got, callback);
+        },
+
+        function(got, callback){
+            console.log(got);
+            console.log(got.length);
+
+            symcrypt.decrypt('abcdefg', got, callback);
+        },
+
+        function(got, callback){
+            console.log(got.toString('ascii'));
+        },
+
+    ],
+
+    function(err, result){
+    }
+);
