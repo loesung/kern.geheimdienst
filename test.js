@@ -7,7 +7,7 @@ var IPCClient = $.net.IPC.client(socketPath);
 console.log(socketPath);
 
 IPCClient.request(
-    '/abc/def',    
+    '/encrypt/codebook',    
     function(err, e){
         if(null == err){
             console.log(e.response.statusCode);

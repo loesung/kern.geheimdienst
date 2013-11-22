@@ -1,5 +1,6 @@
 var processors = {
     'auth': require('./auth.js'),
+    'router': require('./router.js'),
 };
 
 module.exports = function(e){
@@ -7,6 +8,7 @@ module.exports = function(e){
         [
             processors['auth'](e),
 
+            processors['router'](e), // must return a result.
         ],
         function(err, result){
             if(null != err){
