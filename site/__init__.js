@@ -1,7 +1,11 @@
+var processors = {
+    'auth': require('./auth.js'),
+};
+
 module.exports = function(e){
     $.nodejs.async.waterfall(
         [
-            require('./auth.js')(e),
+            processors['auth'](e),
 
         ],
         function(err, result){
