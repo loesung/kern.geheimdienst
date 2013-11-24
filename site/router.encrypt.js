@@ -47,15 +47,15 @@ function checksum(input, compareTo, algorithm){
 function job(e, matchResult, post, rueckruf){
     var keySource = matchResult[1],
         key = null,
-        plaintext = post.parsed['plaintext'],
+        plaintext = null,
         checksum = post.parsed['checksum'],
         keychecksum = post.parsed['keychecksum'];
     var workflow = [];
 
     try{
+        plaintext = post.parsed['plaintext'];
         plaintext = $.nodejs.buffer.Buffer(plaintext, 'hex');
     } catch (e){
-        console.log(e);
         rueckruf(400);
         return;
     };
@@ -69,19 +69,39 @@ function job(e, matchResult, post, rueckruf){
                 callback(409);
         });
     } else {
-        workflow.push(function(callback){
-            callback(null);
-        });
+        workflow.push(passOn);
     };
 
     switch(keySource){
         case 'key':
-            key = post.parsed['key'];
-            if(undefined == key){
+            try{
+                key = post.parsed['key'];
+                key = $.nodejs.buffer.Buffer(key, 'hex');
+            } catch(e) {
                 rueckruf(400);
                 return;
+            };
+
+            if(undefined != keychecksum){
+                workflow.push(function(callback){
+                    if(checksum(key, checksum, 'md5'))
+                        callback(null);
+                    else
+                        callback(409);
+                });
             } else
                 workflow.push(passOn);
+
+            workflow.push(function(callback){
+                _.symcrypt.encrypt(key, plaintext, function(err, result){
+                    if(null != err){
+                        callback(422);
+                        return;
+                    };
+
+                    callback(null, _.package.ciphertext.pack(result));
+                });
+            });
             break;
 
         case 'codebook':
