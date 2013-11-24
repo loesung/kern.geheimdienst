@@ -27,14 +27,29 @@
  *                  Remember this is not the checksum of the HEX-encoded input
  *                  and is designed to see, if what the program going to deal
  *                  with is equal to what you want.
+ *   - keychecksum, like 'checksum', but for the verification of the key. If
+ *                  <KEY-SOURCE> is not 'key', this will be ignored.
  *      
  */
+function passOn(callback){
+    callback(null);
+};
+
+function checksum(input, compareTo, algorithm){
+    try{
+        var digest = _.digest.md5(input).hex;
+        return (digest == compareTo.trim().toLowerCase)
+    } catch (e){
+        return false;
+    };
+};
 
 function job(e, matchResult, post, rueckruf){
     var keySource = matchResult[1],
         key = null,
         plaintext = post.parsed['plaintext'],
-        checksum = post.parsed['checksum'];
+        checksum = post.parsed['checksum'],
+        keychecksum = post.parsed['keychecksum'];
     var workflow = [];
 
     try{
@@ -48,9 +63,10 @@ function job(e, matchResult, post, rueckruf){
     if(undefined != checksum){
         // check conflict
         workflow.push(function(callback){
-            var digest = _.digest.md5(plaintext).hex;
-            console.log(digest);
-            callback(null);
+            if(checksum(plaintext, checksum, 'md5'))
+                callback(null);
+            else
+                callback(409);
         });
     } else {
         workflow.push(function(callback){
@@ -61,20 +77,21 @@ function job(e, matchResult, post, rueckruf){
     switch(keySource){
         case 'key':
             key = post.parsed['key'];
-            if(undefined == key)
+            if(undefined == key){
                 rueckruf(400);
-            else
-                workflow.push(function(callback){
-                    callback(null, plaintext);
-                });
+                return;
+            } else
+                workflow.push(passOn);
             break;
 
         case 'codebook':
             rueckruf(501);
+            return;
             break;
 
         default:
             rueckruf(400);
+            return;
             break;
     };
 
