@@ -6,9 +6,10 @@
  */
 require('./lib/baum.js');
 require('./lib/_.js');
-CONFIG = $.config.createConfig('./config/');
 
-var socketPath = CONFIG.get('socket-path');
+$.global.set('config', $.config.createConfig('./config/'));
+
+var socketPath = $.global.get('config').get('socket-path');
 
 var IPCServer = $.net.IPC.server(socketPath);
 console.log('IPC Server created at: ' + socketPath);

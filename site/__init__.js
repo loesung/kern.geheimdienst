@@ -15,7 +15,8 @@ module.exports = function(e){
                 e.response.writeHead(403);
                 e.response.end();
             } else {
-                e.response.end('hallo');
+                e.response.writeHead(200);
+                e.response.end(result);
             };
         }
     );

@@ -16,6 +16,9 @@ IPCClient.request(
                 console.log(data.raw);
             });
         };
+    },
+    {
+        post: 'abcdefg',
     }
 );
 
