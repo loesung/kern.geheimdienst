@@ -11,6 +11,6 @@ module.exports = function(e){
                 return;
             };
         };
-        callback('no-router');
+        callback(400);
     };
 };

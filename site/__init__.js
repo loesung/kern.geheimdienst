@@ -12,7 +12,10 @@ module.exports = function(e){
         ],
         function(err, result){
             if(null != err){
-                e.response.writeHead(403);
+                if(isNaN(err))
+                    e.response.writeHead(400);
+                else
+                    e.response.writeHead(err);
                 e.response.end();
             } else {
                 e.response.writeHead(200);

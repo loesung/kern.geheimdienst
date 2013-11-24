@@ -1,5 +1,18 @@
-function job(e, post, rueckruf){
-    setTimeout(function(){rueckruf(null, 'abcdefg');}, 3000);
+function job(e, matchResult, post, rueckruf){
+    var keySource = matchResult[1];
+    switch(keySource){
+        case 'key':
+            setTimeout(function(){rueckruf(null, 'abcdefg');}, 3000);
+            break;
+
+        case 'codebook':
+            rueckruf(501);
+            break;
+
+        default:
+            rueckruf(400);
+            break;
+    };
 };
 
 module.exports = function(e){
@@ -10,7 +23,7 @@ module.exports = function(e){
         };
 
         e.on('ready', function(post){
-            job(e, post, callback);
+            job(e, matchResult, post, callback);
         });
     };
 };
