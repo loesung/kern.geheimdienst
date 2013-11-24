@@ -1,8 +1,17 @@
 function job(e, matchResult, post, rueckruf){
-    var keySource = matchResult[1];
+    var keySource = matchResult[1],
+        key = null,
+        plaintext = post.parsed['plaintext'],
+        checksum = post.parsed['checksum'];
+
+    if(undefined == plaintext){
+        rueckruf(400);
+        return;
+    };
+
     switch(keySource){
         case 'key':
-            setTimeout(function(){rueckruf(null, 'abcdefg');}, 3000);
+            rueckruf(null, plaintext);
             break;
 
         case 'codebook':
