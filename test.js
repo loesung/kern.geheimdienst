@@ -18,7 +18,7 @@ IPCClient.request(
         };
     },
     {
-        post: 'plaintext=' + encodeURIComponent('Test Text One\nText Text;'),
+        post: 'checksum=&plaintext=' + encodeURIComponent('Test Text One\nText Text;'),
     }
 );
 

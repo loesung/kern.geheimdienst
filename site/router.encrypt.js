@@ -3,15 +3,35 @@ function job(e, matchResult, post, rueckruf){
         key = null,
         plaintext = post.parsed['plaintext'],
         checksum = post.parsed['checksum'];
+    var workflow = [];
 
     if(undefined == plaintext){
         rueckruf(400);
         return;
     };
 
+    if(undefined != checksum){
+        // check conflict
+        workflow.push(function(callback){
+            var digest = _.digest.md5(plaintext).hex;
+            console.log(digest);
+            callback(null);
+        });
+    } else {
+        workflow.push(function(callback){
+            callback(null);
+        });
+    };
+
     switch(keySource){
         case 'key':
-            rueckruf(null, plaintext);
+            key = post.parsed['key'];
+            if(undefined == key)
+                rueckruf(400);
+            else
+                workflow.push(function(callback){
+                    callback(null, plaintext);
+                });
             break;
 
         case 'codebook':
@@ -22,6 +42,13 @@ function job(e, matchResult, post, rueckruf){
             rueckruf(400);
             break;
     };
+
+    $.nodejs.async.waterfall(
+        workflow,
+        function(err, result){
+            rueckruf(null, result);
+        }
+    );
 };
 
 module.exports = function(e){
