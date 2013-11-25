@@ -67,7 +67,7 @@ function job(e, matchResult, post, rueckruf){
     // read HEX-encoded plaintext
     try{
         plaintext = post.parsed['plaintext'];
-        plaintext = $.nodejs.buffer.Buffer(plaintext, 'hex');
+        plaintext = new $.nodejs.buffer.Buffer(plaintext, 'hex');
     } catch (e){
         rueckruf(400);
         return;
@@ -91,7 +91,7 @@ function job(e, matchResult, post, rueckruf){
         case 'key':
             try{
                 key = post.parsed['key'];
-                key = $.nodejs.buffer.Buffer(key, 'hex');
+                key = new $.nodejs.buffer.Buffer(key, 'hex');
             } catch(e) {
                 rueckruf(400);
                 return;
@@ -157,7 +157,12 @@ function job(e, matchResult, post, rueckruf){
                     'result': cipherresult,
                     'key': keyHints,
                 };
-                rueckruf(null, _.package.ciphertext.pack(result));
+                var packed = _.package.ciphertext.pack(result);
+                rueckruf(
+                    null,
+                    new $.nodejs.buffer.Buffer(packed, 'ascii')
+                    .toString('hex')
+                );
             };
         }
     );

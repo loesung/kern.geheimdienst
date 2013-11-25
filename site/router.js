@@ -1,6 +1,7 @@
 module.exports = function(e){
     var table = {
         '^\/encrypt\/(key|codebook)$': require('./router.encrypt.js')(e),
+        '^\/decrypt\/(analyze)?$': require('./router.decrypt.js')(e),
     };
 
     return function(callback){
