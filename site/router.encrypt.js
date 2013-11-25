@@ -4,7 +4,10 @@
  * This uses the cascade encryption function(defined in /lib/symcrypt.js) to
  * get a given plaintext encrypted.
  *
- * Request URI: /encrypt/<KEY-SOURCE>
+ *                      COMMAND FORMAT AND MEANINGS
+ *
+ * Request URI:    /encrypt/<KEY-SOURCE>
+ * Request Method: POST(only)
  *
  * KEY-SOURCE:  choose between 'key' or 'codebook'. This will result in more
  *              requirements in the request body.
@@ -29,13 +32,21 @@
  *                  with is equal to what you want.
  *   - keychecksum, like 'checksum', but for the verification of the key. If
  *                  <KEY-SOURCE> is not 'key', this will be ignored.
- *      
+ *
+ *                            RETURN VALUES
+ * HTTP Status Code is used to signal the type of error:
+ *   - 400          cannot read plaintext or key, or the command is not
+ *                  understood.
+ *   - 405          the 'method' is not 'POST', as expected.
+ *   - 409          checksum of plaintext or key not match.
+ *   - 422          failure occured during compressing or encrypting.
+ *   - 501          this feature is not implemented.
  */
 function passOn(callback){
     callback(null);
 };
 
-function checksum(input, compareTo, algorithm){
+function doChecksum(input, compareTo, algorithm){
     try{
         var digest = _.digest.md5(input).hex;
         return (digest == compareTo.trim().toLowerCase)
@@ -50,8 +61,10 @@ function job(e, matchResult, post, rueckruf){
         plaintext = null,
         checksum = post.parsed['checksum'],
         keychecksum = post.parsed['keychecksum'];
-    var workflow = [];
+    var workflow = [],
+        keyHints = null;
 
+    // read HEX-encoded plaintext
     try{
         plaintext = post.parsed['plaintext'];
         plaintext = $.nodejs.buffer.Buffer(plaintext, 'hex');
@@ -60,10 +73,11 @@ function job(e, matchResult, post, rueckruf){
         return;
     };
 
+    // if there is a checksum provided, try it.
     if(undefined != checksum){
         // check conflict
         workflow.push(function(callback){
-            if(checksum(plaintext, checksum, 'md5'))
+            if(doChecksum(plaintext, checksum, 'md5'))
                 callback(null);
             else
                 callback(409);
@@ -72,6 +86,7 @@ function job(e, matchResult, post, rueckruf){
         workflow.push(passOn);
     };
 
+    // determine the key source
     switch(keySource){
         case 'key':
             try{
@@ -84,7 +99,7 @@ function job(e, matchResult, post, rueckruf){
 
             if(undefined != keychecksum){
                 workflow.push(function(callback){
-                    if(checksum(key, checksum, 'md5'))
+                    if(doChecksum(key, keychecksum, 'md5'))
                         callback(null);
                     else
                         callback(409);
@@ -92,19 +107,11 @@ function job(e, matchResult, post, rueckruf){
             } else
                 workflow.push(passOn);
 
-            workflow.push(function(callback){
-                _.symcrypt.encrypt(key, plaintext, function(err, result){
-                    if(null != err){
-                        callback(422);
-                        return;
-                    };
-
-                    callback(null, _.package.ciphertext.pack(result));
-                });
-            });
+            keyHints = null;
             break;
 
         case 'codebook':
+            // XXX decide and get key hint
             rueckruf(501);
             return;
             break;
@@ -115,13 +122,48 @@ function job(e, matchResult, post, rueckruf){
             break;
     };
 
+    // push compression command
+    workflow.push(function(callback){
+        $.nodejs.zlib.deflateRaw(plaintext, function(err, result){
+            if(null != err)
+                callback(422);
+            else {
+                callback(null, result);
+            };
+        });
+    });
+
+    // push encryption command
+    workflow.push(function(compressed, callback){
+        _.symcrypt.encrypt(key, compressed, function(err, result){
+            if(null != err){
+                callback(422);
+                return;
+            };
+
+            callback(null, result);
+        });
+    });
+
+    // command execution
     $.nodejs.async.waterfall(
         workflow,
-        function(err, result){
-            rueckruf(null, result);
+        function(err, cipherresult){
+            if(null != err){
+                rueckruf(err);
+            } else {
+                var result = {
+                    'compress': 'zlib',
+                    'result': cipherresult,
+                    'key': keyHints,
+                };
+                rueckruf(null, _.package.ciphertext.pack(result));
+            };
         }
     );
 };
+
+
 
 module.exports = function(e){
     return function(matchResult, callback){
