@@ -31,8 +31,17 @@
  *                  understood.
  */
 function analyzeJob(e, matchResult, ciphertext, callback){
-    console.log(ciphertext);
-    callback(null, JSON.stringify(ciphertext));
+    try{
+        var report = {};
+        var keyHints = ciphertext.key;
+
+        if(null == keyHints)
+            report.type = 'key';
+
+        callback(null, $.nodejs.querystring.encode(report));
+    } catch(e){
+        callback(409);
+    };
 };
 
 function decryptJob(e, matchResult, ciphertext, callback){
