@@ -1,5 +1,7 @@
 require('./lib/baum.js');
+require('./lib/_.js');
 CONFIG = $.config.createConfig('./config/');
+/*
 var socketPath = CONFIG.get('socket-path');
 
 var IPCClient = $.net.IPC.client(socketPath);
@@ -22,8 +24,10 @@ IPCClient.request(
     }
 );
 
-/*var symcrypt = require('./lib/symcrypt')($);
+*/var symcrypt = require('./lib/symcrypt')($, _);
 var l = 1024;
+
+var key = new $.nodejs.buffer.Buffer('abcdefg');
 
 $.nodejs.async.waterfall(
     [
@@ -33,12 +37,12 @@ $.nodejs.async.waterfall(
             source += 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
             source += 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
             console.log(source.length);
-            callback(null, source);
+            callback(null, new $.nodejs.buffer.Buffer(source));
             //$.nodejs.crypto.pseudoRandomBytes(l, callback);
         },
 
         function(got, callback){
-            symcrypt.encrypt('abcdefg', got, callback);
+            symcrypt.encrypt(key, got, callback);
         },
 
         function(got, callback){
@@ -46,7 +50,7 @@ $.nodejs.async.waterfall(
             console.log(got[0].length);
             console.log(got[1].length);
 
-            symcrypt.decrypt('abcdefg', got, callback);
+            symcrypt.decrypt(key, got, callback);
         },
 
         function(got, callback){
@@ -58,4 +62,4 @@ $.nodejs.async.waterfall(
 
     function(err, result){
     }
-);*/
+);/**/

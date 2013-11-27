@@ -33,7 +33,7 @@
 function analyzeJob(e, matchResult, ciphertext, callback){
     try{
         var report = {};
-        var keyHints = ciphertext.key;
+        var keyHints = ciphertext['key.hint'];
 
         if(null == keyHints)
             report.type = 'key';

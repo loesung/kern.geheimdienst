@@ -153,9 +153,9 @@ function job(e, matchResult, post, rueckruf){
                 rueckruf(err);
             } else {
                 var result = {
-                    'compress': 'zlib',
-                    'result': cipherresult,
-                    'key': keyHints,
+                    'compress.algorithm': 'zlib',
+                    'ciphertext': cipherresult,
+                    'key.hint': keyHints,
                 };
                 var packed = _.package.ciphertext.pack(result);
                 rueckruf(
