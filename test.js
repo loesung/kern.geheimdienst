@@ -29,33 +29,37 @@ var l = 1024;
 
 var key = new $.nodejs.buffer.Buffer('abcdefg');
 
+var b = 0, e = 0, testlen = 1024 * 10;
+var source = '';
+
 $.nodejs.async.waterfall(
     [
         function(callback){
-            source = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-            source += 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-            source += 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-            source += 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-            console.log(source.length);
-            callback(null, new $.nodejs.buffer.Buffer(source));
-            //$.nodejs.crypto.pseudoRandomBytes(l, callback);
+            source = $.nodejs.crypto.pseudoRandomBytes(testlen, function(e,s){
+                callback(null, s);
+            });
         },
 
         function(got, callback){
+            b = new Date().getTime();
             symcrypt.encrypt(key, got, callback);
         },
 
         function(got, callback){
-            console.log(got);
+            e = new Date().getTime();
+            console.log('encryption time in [ms]:', e-b);
+            console.log('encryption speed: ', testlen / (e-b) * 1000.0, 'Byte/s');
             console.log(got[0].length);
             console.log(got[1].length);
 
+            b = new Date().getTime();
             symcrypt.decrypt(key, got, callback);
         },
 
         function(got, callback){
-            console.log(got.toString('ascii'));
-            console.log(got.length);
+            e = new Date().getTime();
+            console.log('decryption time in [ms]:', e-b);
+            console.log('decryption speed: ', got.length / (e-b) * 1000.0, 'Byte/s');
         },
 
     ],
