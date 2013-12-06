@@ -29,8 +29,18 @@ var l = 1024;
 
 var key = new $.nodejs.buffer.Buffer('abcdefg');
 
-var b = 0, e = 0, testlen = 1024 * 10;
+var b = 0, e = 0, testlen = 1024 * 1024;
 var source = '';
+
+function timediff(ns2, ns1){
+    var ns = ns2[1] - ns1[1];
+    var s = ns2[0] - ns1[0];
+    if(ns < 0){
+        ns += 1000000000;
+        s -= 1;
+    };
+    return s * 1000000000 + ns;
+};
 
 $.nodejs.async.waterfall(
     [
@@ -41,25 +51,25 @@ $.nodejs.async.waterfall(
         },
 
         function(got, callback){
-            b = new Date().getTime();
+            b = process.hrtime();
             symcrypt.encrypt(key, got, callback);
         },
 
         function(got, callback){
-            e = new Date().getTime();
-            console.log('encryption time in [ms]:', e-b);
-            console.log('encryption speed: ', testlen / (e-b) * 1000.0, 'Byte/s');
+            e = process.hrtime();
+            console.log('encryption time in [ns]:', timediff(e,b));
+            console.log('encryption speed: ', testlen / timediff(e,b) * 1000000000.0, 'Byte/s');
             console.log(got[0].length);
             console.log(got[1].length);
 
-            b = new Date().getTime();
+            b = process.hrtime();
             symcrypt.decrypt(key, got, callback);
         },
 
         function(got, callback){
-            e = new Date().getTime();
-            console.log('decryption time in [ms]:', e-b);
-            console.log('decryption speed: ', got.length / (e-b) * 1000.0, 'Byte/s');
+            e = process.hrtime();
+            console.log('decryption time in [ns]:', timediff(e,b));
+            console.log('decryption speed: ', got.length / timediff(e,b) * 1000000000.0, 'Byte/s');
         },
 
     ],
