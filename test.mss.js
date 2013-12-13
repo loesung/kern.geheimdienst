@@ -6,7 +6,6 @@ var result = mss.sign(
     new $.nodejs.buffer.Buffer('abcdefg'), 
     new $.nodejs.buffer.Buffer('abcdefg0')
 );
-console.log(result);
 
 console.log(mss.root(
     new $.nodejs.buffer.Buffer('abcdefg')
