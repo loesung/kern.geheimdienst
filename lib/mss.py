@@ -19,10 +19,11 @@ The signature capacity is designed to be 2^40.
 import math
 import hashlib
 
-w_bits = 8 
+w_bits = 2
 w = 2 ** w_bits
-m = 256
-hashAlgorithm = hashlib.sha256
+
+hashAlgorithm = hashlib.md5
+m = 8 * len(hashAlgorithm('').digest())
 
 l_1 = int(math.ceil(m * 1.0 / w_bits))
 l_2 = int(math.floor(math.log(l_1 * (w - 1)) / math.log(w)) + 1)
@@ -105,12 +106,12 @@ class winternitzOTS:
         signArray = self._winternitzHash(message)
         
         retSig, retPub = [], []
-        benchmarkCount=0
+#        benchmarkCount=0
 
         for i in xrange(0, l):
             signedValue = signArray[i]
             iterateHash = self._iterateHashInit(privateKey, i)
-            benchmarkCount += 1
+#            benchmarkCount += 1
             
             for j in xrange(0, w):
                 if j == signedValue:
@@ -118,11 +119,11 @@ class winternitzOTS:
                 iterateHash = hashAlgorithm(iterateHash).digest()
                 # ^^ hash after potential push, therefore
                 # no fear of leaking private key.
-                benchmarkCount += 1
+#                benchmarkCount += 1
             
             retPub.append(iterateHash)
 
-        print '# hashed %d times' % benchmarkCount
+#        print '# hashed %d times' % benchmarkCount
 
         return [retPub, retSig]
 
@@ -240,8 +241,6 @@ class MSS:
                 auths.append(selected + 1)
             selected = selected / 2
 
-        print auths
-
         # feed the tree to get root, and by the way get auth.
         treehash.setExtractor(auths)
         for i in xrange(0, self.capacity):
@@ -282,12 +281,29 @@ class MSS:
 ##############################################################################
 
 if __name__ == '__main__':
-    mss = MSS(5)
-    
-    root = mss.root('')
-    print 'Root is: ', root.encode('hex')
+    import time
 
-    signature = mss.sign('', 0, 'abcdefg')
+    treeDepth = 4 
+    treeNum = 5 
+
+    mss = MSS(treeDepth)
+    
+    t0b = time.time()
+    root = mss.root('')
+    t0e = time.time()
+    print 'Root is: ', root.encode('hex'), 'time used', t0e-t0b, 'seconds'
+
+    bt = time.time()
+    for i in xrange(0, treeNum):
+        signature = mss.sign('', 0, 'abcdefg')
+    et = time.time()
+    print 'Signature take time: %f' % (et-bt)
+
+    length = 0
+    for x in signature:
+        for i in x:
+            length += len(i)
+    print 'Minimal length of signature: %d bytes' % (treeNum * length)
 #    print signature
 
     verifyResult = mss.verify(signature[0], signature[1], signature[2], 'abcdefg')
