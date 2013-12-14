@@ -7,11 +7,11 @@ var result = mss.sign(
     new $.nodejs.buffer.Buffer('abcdefg0')
 );
 
-console.log(mss.root(
+console.log('root', mss.derivePublicKey(
     new $.nodejs.buffer.Buffer('abcdefg')
 ));
 
-console.log(mss.verify(result[0], result[1], result[2],
+console.log('result', mss.verify(result[0], result[1], result[2],
     new $.nodejs.buffer.Buffer('abcdefg0')
 ));
 /*
