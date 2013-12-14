@@ -156,6 +156,9 @@ class Treehash:
         if self.auths == False:
             return;
 
+        if freshNode[1] >= len(self.auths):
+            return;
+
         if type(self.auths[freshNode[1]]) == str:
             return
 
@@ -222,7 +225,7 @@ class MSS:
         return treehash.stack[0][0]
 
     def sign(self, seed, li, message):
-        treehash = Treehash(seed, self.leafCalc, self.joinHash)
+        treehash = Treehash(seed, self._leafCalc, self._joinHash)
         # TODO check 0 < li < capacity
 
 #            console.log('li', li)
@@ -230,20 +233,20 @@ class MSS:
         auths = []
         selected = li
 
-        for i in xrange(0, layer):
+        for i in xrange(0, self.layer):
             if selected % 2 == 1:
-                auths.push(selected - 1)
+                auths.append(selected - 1)
             else:
-                auths.push(selected + 1)
-            selected = Math.floor(selected / 2)
+                auths.append(selected + 1)
+            selected = selected / 2
+
+        print auths
 
         # feed the tree to get root, and by the way get auth.
         treehash.setExtractor(auths)
-        for i in xrange(0, capacity):
+        for i in xrange(0, self.capacity):
             treehash.feed(i)
         auths = treehash.getExtracted()
-
-        console.log('done', auths)
 
         # sign message using key@li. XXX here we have not reuse the
         # public key, which must have been derived in above process.
@@ -252,10 +255,11 @@ class MSS:
         wotsPrivateKey = self._leafPrivateKey(seed, li)
         wotsRet = wots.sign(wotsPrivateKey, message)
 
-        return [wotsRet[0], wotsRet[1], auths]
+        # otsPubKey, otsSig, auths
+        return (wotsRet[0], wotsRet[1], auths)
 
     def verify(self, otsPubKey, otsSig, auths, message, compare=False):
-        if len(auths) != layer:
+        if len(auths) != self.layer:
             return False
 
         # verify W-OTS signature
@@ -264,11 +268,11 @@ class MSS:
             return False
 
         # now verify auth path
-        hashResult = hashAlgorithm(''.join(otsPubKey))
+        hashResult = hashAlgorithm(''.join(otsPubKey)).digest()
         #console.log('Verify - Public Key hash: ', hashResult.toString('hex'))
         #console.log('verify auths with', auths)
         for each in auths:
-            hashResult = joinHash(hashResult, each)
+            hashResult = self._joinHash(hashResult, each)
 
         if False != compare:
             return compare == hashResult
@@ -282,3 +286,9 @@ if __name__ == '__main__':
     
     root = mss.root('')
     print 'Root is: ', root.encode('hex')
+
+    signature = mss.sign('', 0, 'abcdefg')
+#    print signature
+
+    verifyResult = mss.verify(signature[0], signature[1], signature[2], 'abcdefg')
+    print verifyResult.encode('hex')
