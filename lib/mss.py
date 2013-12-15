@@ -320,8 +320,10 @@ Command-line logic
 if __name__ == '__main__':
     import time
 
-    treeDepth, treeNum = 4, 6
-    mss = MSS(treeDepth)
+    treePlan = [4, 4, 4, 4, 4, 4]
+
+    treeNum = len(treePlan)
+    trees = [MSS(i) for i in treePlan]
 
     def deriveSeed(privateKey, treeID):
         concat = privateKey + 'leaf' + hex(treeID)[2:].rjust(2, '0')
@@ -348,19 +350,23 @@ if __name__ == '__main__':
     def sign(privateKey, message, cacheStr=False):
         c = cache(privateKey, cacheStr)
         if c.root == '':
-            c.setPublicKey(mss.root(deriveSeed(privateKey, 0)))
+            c.setPublicKey(trees[0].root(deriveSeed(privateKey, 0)))
             print 'VeryRoot', c.root.encode('hex')
         c.counter += 1
        
         toSign = message
+        counter = c.counter
         for i in xrange(0, treeNum):
-            treeID = treeNum - 1 - i
+            treeID = treeNum - 1 - i    # 5 > 4 > 3 > 2 > 1 > 0
             treeSeed = deriveSeed(privateKey, treeID)
-            leafID = (c.counter >> (4 * i)) & 0xf
+            leafID = counter & 0xf
             # otsPubKey, otsSig, auths, root
-            result = mss.sign(treeSeed, leafID, toSign)
+            result = trees[treeID].sign(treeSeed, leafID, toSign)
+
             print 'Tree #%d' % treeID, result[3].encode('hex')
+
             toSign = result[3]
+            counter = counter >> treePlan[treeID]
             
 
     def verify(publicKey, signature, message):
