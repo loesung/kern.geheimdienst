@@ -274,7 +274,7 @@ class MSS:
             selected = selected / 2
 
         # feed the tree to get root, and by the way get auth.
-        print auths
+        # print auths
         treehash.setExtractor(auths)
         for i in xrange(0, self.capacity):
             treehash.feed(i)
@@ -331,7 +331,6 @@ if __name__ == '__main__':
 
     class cache:
         counter = 0
-        root = ''
 
         def __init__(self, privateKey, cacheStr=False):
             pass
@@ -342,16 +341,11 @@ if __name__ == '__main__':
         def setTreeSig(self):
             pass
 
-        def setPublicKey(self, publicKey):
-            if self.root == '':
-                self.root = publicKey 
-
 
     def sign(privateKey, message, cacheStr=False):
+        signature = [] 
         c = cache(privateKey, cacheStr)
-        if c.root == '':
-            c.setPublicKey(trees[0].root(deriveSeed(privateKey, 0)))
-            print 'VeryRoot', c.root.encode('hex')
+        c.counter = 1000
         c.counter += 1
        
         toSign = message
@@ -363,14 +357,26 @@ if __name__ == '__main__':
             # otsPubKey, otsSig, auths, root
             result = trees[treeID].sign(treeSeed, leafID, toSign)
 
-            print 'Tree #%d' % treeID, result[3].encode('hex')
+            print 'Tree #%d' % treeID,\
+                result[3].encode('hex'),\
+                'LEAF(%d)' % leafID,\
+                'len(pub)=%d bytes' % (len(result[0][0]) * len(result[0])),\
+                'len(sig)=%d bytes' % (len(result[1][0]) * len(result[1])),\
+                'len(auths)=%d bytes' % (len(result[2][0]) * len(result[2]))
 
             toSign = result[3]
             counter = counter >> treePlan[treeID]
-            
+
+            signature += result[0] + result[1] + result[2]
+
+        print len(signature)
+        
+        return {'result': ''.join(signature), 'cache': str(c)}
 
     def verify(publicKey, signature, message):
-        pass
+        if len(signature) / m != (2 * l * treeNum + sum(treePlan)):
+            return False
+
 
     def derivePublicKey(privateKey, cacheStr=False):
         c = cache(privateKey, cacheStr)
@@ -381,7 +387,7 @@ if __name__ == '__main__':
             c.setPublicKey(root)
         return {'result': root, 'cache': str(c)}
 
-    sign('', 'abcd', False)
+    print sign('', 'abcd', False)['result'].encode('base64')
 
     """
     t0b = time.time()
