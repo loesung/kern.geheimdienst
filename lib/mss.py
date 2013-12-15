@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Python Implementation of Merkle Tree Signature
+==============================================
 
 This is an implementation of a new method of digitally sign a message. It is
 however unable to perform encryption. For more details, please refer to:
@@ -11,18 +12,46 @@ however unable to perform encryption. For more details, please refer to:
 [3] Johannes Buchmann, Erik Dahmen, Andreas Huelsing. XMSS – A Practical
     Forward Secure Signature Scheme based on Minimal Security Assumptions.
 
-This implementation is similar to [2]. However no optimization is done for
-caching the results at higher levels of trees.
+This implementation is similar to [2]. 
 
-The signature capacity is designed to be 2^40.
+By command line calling of this program, a signature capacity of 2^24 is
+provided. This is subject to, however, a slow speed of generating public key
+and doing signature.
+
+
+NOTICE ON THE CACHE
+-------------------
+To speed up such operations, and to keep record of the usage of all keys in
+order to avoid reusage of same OTS key, a cache is accepted and regenerated
+at each time. It is around the size of a signature, some value less than
+100KBytes, may be around 10KBytes. 
+
+IF NO CACHE IS PROVIDED, THE PROGRAM WILL START AT BEGIN, WHICH IS EXTREMELY
+DANGEROUS AND PROVIDE NO SECURITY.
+
+In order to examine the integrity of cache, a HMAC of cache with private key
+is shipped together with the regenerated cache. If a cache is found to be
+corrupted, program will exit and do no more operations.
+
+
+The capacity and speed provided by this implementation is not very suitable
+for embedded systems, and not for servers who need to do tens or hundreds of 
+signs within seconds. This implementation is meant to provide occasionally 
+signing, with very low frequency(like only a few times a day). It is however 
+worth mentioning, that the algorithm itself is far better than DSA and RSA. 
+
+Those who are interested in this algorithm should consider implement it in C,
+or use hardware acceleration, in which way the capacity can be largely
+extended and relativly small sizes maintained by choosing large w(or w_bits).
 """
+import json
 import math
 import hashlib
 
-w_bits = 2
+w_bits = 8 
 w = 2 ** w_bits
 
-hashAlgorithm = hashlib.md5
+hashAlgorithm = hashlib.sha224
 m = 8 * len(hashAlgorithm('').digest())
 
 l_1 = int(math.ceil(m * 1.0 / w_bits))
@@ -147,6 +176,8 @@ class winternitzOTS:
 ##############################################################################
 
 class Treehash:
+
+    root = ''
     
     def __init__(self, seed, Leafcalc, joinHash):
         self.seed, self.Leafcalc, self.joinHash = seed, Leafcalc, joinHash
@@ -155,10 +186,11 @@ class Treehash:
 
     def _extract(self, freshNode):
         if self.auths == False:
-            return;
+            return
 
         if freshNode[1] >= len(self.auths):
-            return;
+            self.root = freshNode[0]
+            return
 
         if type(self.auths[freshNode[1]]) == str:
             return
@@ -242,10 +274,12 @@ class MSS:
             selected = selected / 2
 
         # feed the tree to get root, and by the way get auth.
+        print auths
         treehash.setExtractor(auths)
         for i in xrange(0, self.capacity):
             treehash.feed(i)
         auths = treehash.getExtracted()
+        root = treehash.root
 
         # sign message using key@li. XXX here we have not reuse the
         # public key, which must have been derived in above process.
@@ -254,8 +288,8 @@ class MSS:
         wotsPrivateKey = self._leafPrivateKey(seed, li)
         wotsRet = wots.sign(wotsPrivateKey, message)
 
-        # otsPubKey, otsSig, auths
-        return (wotsRet[0], wotsRet[1], auths)
+        # otsPubKey, otsSig, auths, root
+        return (wotsRet[0], wotsRet[1], auths, root)
 
     def verify(self, otsPubKey, otsSig, auths, message, compare=False):
         if len(auths) != self.layer:
@@ -279,15 +313,71 @@ class MSS:
             return hashResult
 
 ##############################################################################
-
+"""
+Command-line logic
+==================
+"""
 if __name__ == '__main__':
     import time
 
-    treeDepth = 4 
-    treeNum = 5 
-
+    treeDepth, treeNum = 4, 6
     mss = MSS(treeDepth)
-    
+
+    def deriveSeed(privateKey, treeID):
+        concat = privateKey + 'leaf' + hex(treeID)[2:].rjust(2, '0')
+        return hashAlgorithm(concat).digest()
+
+    class cache:
+        counter = 0
+        root = ''
+
+        def __init__(self, privateKey, cacheStr=False):
+            pass
+
+        def __toString__(self):
+            return ''
+
+        def setTreeSig(self):
+            pass
+
+        def setPublicKey(self, publicKey):
+            if self.root == '':
+                self.root = publicKey 
+
+
+    def sign(privateKey, message, cacheStr=False):
+        c = cache(privateKey, cacheStr)
+        if c.root == '':
+            c.setPublicKey(mss.root(deriveSeed(privateKey, 0)))
+            print 'VeryRoot', c.root.encode('hex')
+        c.counter += 1
+       
+        toSign = message
+        for i in xrange(0, treeNum):
+            treeID = treeNum - 1 - i
+            treeSeed = deriveSeed(privateKey, treeID)
+            leafID = (c.counter >> (4 * i)) & 0xf
+            # otsPubKey, otsSig, auths, root
+            result = mss.sign(treeSeed, leafID, toSign)
+            print 'Tree #%d' % treeID, result[3].encode('hex')
+            toSign = result[3]
+            
+
+    def verify(publicKey, signature, message):
+        pass
+
+    def derivePublicKey(privateKey, cacheStr=False):
+        c = cache(privateKey, cacheStr)
+        if c.root != '':
+            root = c.root
+        else:
+            root = mss.root(deriveSeed(privateKey, 0))
+            c.setPublicKey(root)
+        return {'result': root, 'cache': str(c)}
+
+    sign('', 'abcd', False)
+
+    """
     t0b = time.time()
     root = mss.root('')
     t0e = time.time()
@@ -295,7 +385,7 @@ if __name__ == '__main__':
 
     bt = time.time()
     for i in xrange(0, treeNum):
-        signature = mss.sign('', 0, 'abcdefg')
+        signature = mss.sign('', 2, 'abcdefg')
     et = time.time()
     print 'Signature take time: %f' % (et-bt)
 
@@ -308,3 +398,4 @@ if __name__ == '__main__':
 
     verifyResult = mss.verify(signature[0], signature[1], signature[2], 'abcdefg')
     print verifyResult.encode('hex')
+    """
