@@ -358,6 +358,19 @@ RETURN VALUE
     31      Errors occured in doing respective processes.
     63      Given key is not of required length.
     127     If bad input received and help info is displayed.
+
+OUTPUT
+    Beside <operand> is 'sign', the other 2 operand will lead to simple output
+    of result. When <operand> is 'init', the output is simply the calculated
+    public key, in HEX-encoded format. When <operand> is 'verify', the output
+    is for human. For program, read the exit code(either 0 for good, or 1 for
+    error) is enough.
+
+    When <operand> is 'sign', 2 important parts are included in the output:
+    the calculated signature, and the renewed cache. They are Base64 encoded
+    and divided into lines. Moreover, they are prefixed in each divided line
+    with a '!' for signature, or a '@' for cache. Use this to distinguish
+    them with debug output and other things.
     """ % (m / 8)
     cmdDesc = cmdDesc.strip()
 
@@ -527,7 +540,8 @@ RETURN VALUE
             raise Exception('Not recognized operand.')
     except Exception,e:
         print cmdDesc
-#        print ' '.join(sys.argv)
+        print ' '.join(sys.argv)
+        print e
         sys.exit(127)
 
     if len(cmdKey) != m / 8:
@@ -538,10 +552,11 @@ RETURN VALUE
     if cmdOperand == 'sign':
         try:
             signature, cache = sign(cmdKey, cmdMessage, cmdLast)
-            print signature.encode('base64')
-            print cache.encode('base64')
+            print '\n'.join(['!' + i for i in signature.encode('base64').split('\n')])
+            print '\n'.join(['@' + i for i in cache.encode('base64').split('\n')])
             sys.exit(0)
-        except:
+        except Exception,e:
+            print e
             sys.exit(31)
 
     if cmdOperand == 'init':
