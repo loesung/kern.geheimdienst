@@ -22,13 +22,16 @@ $.nodejs.async.waterfall([
         });
     },
 
-    signer, signer, signer,
+    signer,
+    signer,
 
     function(callback){
         mss.verify(signature, new $.nodejs.buffer.Buffer('hi'), function(e, r){
             console.log(r);
+            callback(null);
         });
     },
 
 ], function(err, result){
+    console.log(mss.cache().length);
 });
