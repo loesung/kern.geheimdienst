@@ -352,7 +352,11 @@ NOTICE
     bytes. The private key can be set to any random string.
 
 RETURN VALUE
-    0       If all job done without questions.
+    0       If all job done without questions. If <operand> is 'verify', this
+            means the verification is done and result is positive.
+    1       When a signature is not verified, the return value is 1.
+    31      Errors occured in doing respective processes.
+    63      Given key is not of required length.
     127     If bad input received and help info is displayed.
     """ % (m / 8)
     cmdDesc = cmdDesc.strip()
@@ -459,7 +463,7 @@ RETURN VALUE
             signature += treeSig 
 #        print len(signature)
         
-        return {'result': ''.join(signature), 'cache': str(c)}
+        return (''.join(signature), str(c))
 
     def verify(publicKey, signature, message):
         def arrayGen(src):
@@ -501,7 +505,7 @@ RETURN VALUE
                 if not verification:
                     return False
                 print verification.encode('hex')
-
+        return False # just in case 
 
     def derivePublicKey(privateKey):
         root = trees[0].root(deriveSeed(privateKey, 0))
@@ -513,7 +517,10 @@ RETURN VALUE
         cmdKey = sys.argv[2].decode('hex')
         if cmdOperand in ['sign', 'verify']:
             cmdMessage = sys.argv[3].decode('hex')
-            cmdLast = sys.argv[4].decode('hex')
+            if len(sys.argv) >= 5:
+                cmdLast = sys.argv[4].decode('hex')
+            else:
+                cmdLast = False
         elif cmdOperand == 'init':
             pass
         else:
@@ -521,6 +528,40 @@ RETURN VALUE
     except Exception,e:
         print cmdDesc
         sys.exit(127)
+
+    if len(cmdKey) != m / 8:
+        print 'Key of incorrect length. Must be %d bytes.' % (m / 8)
+        sys.exit(63)
+
+    # do our job
+    if cmdOperand == 'sign':
+        try:
+            signature, cache = sign(cmdKey, cmdMessage, cmdLast)
+            print signature.encode('base64')
+            print cache.encode('base64')
+            sys.exit(0)
+        except:
+            sys.exit(31)
+
+    if cmdOperand == 'init':
+        try:
+            root = derivePublicKey(cmdKey)
+            print root.encode('hex')
+            sys.exit(0)
+        except Exception, e:
+            print e
+            sys.exit(31)
+
+    if cmdOperand == 'verify':
+        try:
+            if verify(cmdKey, cmdLast, cmdMessage):
+                print 'Good signature.'
+                sys.exit(0)
+            else:
+                sys.exit(1)
+        except Exception, e:
+            print e
+            sys.exit(31)
 
     """
     # test code
@@ -544,3 +585,4 @@ RETURN VALUE
 
     print et-bt
     """
+    sys.exit(127)
