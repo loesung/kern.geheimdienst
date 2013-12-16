@@ -47,7 +47,7 @@ extended and relativly small sizes maintained by choosing large w(or w_bits).
 import math
 import hashlib
 
-w_bits = 8 
+w_bits = 10
 w = 2 ** w_bits
 
 hashAlgorithm = hashlib.sha224
@@ -115,14 +115,15 @@ class winternitzOTS:
 
     def _iterateHashInit(self, privateKey, i):
         return hashAlgorithm(privateKey + hex(i)[2:].rjust(8, '0')).digest()
-
+    
     def publicKey(self, privateKey):
-        retPub = []
+        filler = '0' * (m / 8)
+        retPub = [filler,] * l
         for i in xrange(0, l):
             iterateHash = self._iterateHashInit(privateKey, i)
             for j in xrange(0, w):
                 iterateHash = hashAlgorithm(iterateHash).digest()
-            retPub.append(iterateHash)
+            retPub[i] = iterateHash
         return retPub
 
     def sign(self, privateKey, message):
@@ -133,7 +134,8 @@ class winternitzOTS:
         """ 
         signArray = self._winternitzHash(message)
         
-        retSig, retPub = [], []
+        filler = '0' * (m / 8)
+        retSig, retPub = [filler,] * l, [filler,] * l
 #        benchmarkCount=0
 
         for i in xrange(0, l):
@@ -143,13 +145,13 @@ class winternitzOTS:
             
             for j in xrange(0, w):
                 if j == signedValue:
-                    retSig.append(iterateHash)
+                    retSig[i] = iterateHash
                 iterateHash = hashAlgorithm(iterateHash).digest()
                 # ^^ hash after potential push, therefore
                 # no fear of leaking private key.
 #                benchmarkCount += 1
-            
-            retPub.append(iterateHash)
+           
+            retPub[i] = iterateHash
 
 #        print '# hashed %d times' % benchmarkCount
 
@@ -214,8 +216,10 @@ class Treehash:
             self._extract(Leaf)
         
         self.stack.append(Leaf)
+#        print 'After feed final result: ', [i[1] for i in self.stack]
 
     def setExtractor(self, auths):
+#       print 'setExtractor', auths
         self.auths = auths
 
     def getExtracted(self):
@@ -258,9 +262,10 @@ class MSS:
 
     def sign(self, seed, li, message):
         treehash = Treehash(seed, self._leafCalc, self._joinHash)
-        # TODO check 0 < li < capacity
+        
+        if li >= self.capacity or li < 0:
+            raise Exception('Unrealistic exception of this single tree.')
 
-#            console.log('li', li)
         # decide auth path positions
         auths = []
         selected = li
@@ -275,6 +280,7 @@ class MSS:
         # feed the tree to get root, and by the way get auth.
         # print auths
         treehash.setExtractor(auths)
+#       print 'Feed to get tree hash: ', self.capacity
         for i in xrange(0, self.capacity):
             treehash.feed(i)
         auths = treehash.getExtracted()
@@ -312,13 +318,48 @@ class MSS:
             return hashResult
 
 ##############################################################################
-"""
-Command-line logic
-==================
-"""
 if __name__ == '__main__':
+    cmdDesc = """
+MSS: another digital signature algorithm
+========================================
+
+This program provides a command line tool as well as a library to use MSS
+algorithm, a digital signature algorithm, and is believed to be secure even
+under attack of quantum computers.
+
+SYNOPSIS
+    python mss.py <operand> <key> [message [signature|cache]]
+
+    <operand> is one value in "sign", "verify" or "init", which means:
+        
+        sign    Sign a given message. Under this choice, 'message' is 
+                required, <key> is the private key, and the last parameter is
+                taken as a cache.
+
+        verify  Verify a signature with given public key. Under this choice,
+                'message' and 'signature' is required, and the <key> is taken
+                as a public key.
+
+        init    The <key> is regarded as a private key. The result will print
+                out the public key derived basing on this private key.
+
+NOTICE
+    <key>, message and signature/cache are all given in HEX-encoded string 
+    without spaces. If decoding such strings failed, the program will exit
+    with printing this help info.
+
+    The <key>, either a public key or a private key, is a string with %2d 
+    bytes. The private key can be set to any random string.
+
+RETURN VALUE
+    0       If all job done without questions.
+    127     If bad input received and help info is displayed.
+    """ % (m / 8)
+    cmdDesc = cmdDesc.strip()
+
     import time
     import hmac
+    import sys
     import pickle as serialization 
 
     treePlan = [3, 4, 4, 4, 4, 5]
@@ -390,7 +431,7 @@ if __name__ == '__main__':
         counter = c.counter
         for i in xrange(0, treeNum):
             treeID = treeNum - 1 - i    # 5 > 4 > 3 > 2 > 1 > 0
-            leafID = counter & 0xf
+            leafID = counter & (2 ** treePlan[treeID] - 1)
             
             if i > 0:
                 cached = c.getTreeSig(treeID, leafID)
@@ -466,43 +507,40 @@ if __name__ == '__main__':
         root = trees[0].root(deriveSeed(privateKey, 0))
         return root 
 
+    # Begin command line logic
+    try:
+        cmdOperand = sys.argv[1].strip().lower()
+        cmdKey = sys.argv[2].decode('hex')
+        if cmdOperand in ['sign', 'verify']:
+            cmdMessage = sys.argv[3].decode('hex')
+            cmdLast = sys.argv[4].decode('hex')
+        elif cmdOperand == 'init':
+            pass
+        else:
+            raise Exception('Not recognized operand.')
+    except Exception,e:
+        print cmdDesc
+        sys.exit(127)
+
+    """
+    # test code
     root = derivePublicKey('')
     print 'Derived public key:', root.encode('hex')
 
     sigRet = sign('', 'abcd', False)
     cache = sigRet['cache'] 
 
-    for i in xrange(0,10):
+    bt = time.time()
+    for i in xrange(0,100):
         sigRet = sign('', 'abcd', cache)
         cache = sigRet['cache'] 
         signature = sigRet['result']
+        continue
         verification = verify(root, signature, 'abcd')
 
         if verification:
-            print 'Verification: OK'
-
-#    manipulation = 10573
-#    signature = signature[:manipulation] + 'a' + signature[manipulation+1:]
-
-    """
-    t0b = time.time()
-    root = mss.root('')
-    t0e = time.time()
-    print 'Root is: ', root.encode('hex'), 'time used', t0e-t0b, 'seconds'
-
-    bt = time.time()
-    for i in xrange(0, treeNum):
-        signature = mss.sign('', 2, 'abcdefg')
+            print 'Verification: OK, signature length: %d bytes.' % len(signature)
     et = time.time()
-    print 'Signature take time: %f' % (et-bt)
 
-    length = 0
-    for x in signature:
-        for i in x:
-            length += len(i)
-    print 'Minimal length of signature: %d bytes' % (treeNum * length)
-#    print signature
-
-    verifyResult = mss.verify(signature[0], signature[1], signature[2], 'abcdefg')
-    print verifyResult.encode('hex')
+    print et-bt
     """
