@@ -8,7 +8,7 @@ mss.setPrivateKey(new $.nodejs.buffer.Buffer('ababababababababababababababababab
 
 function signer(callback){
     mss.sign(new $.nodejs.buffer.Buffer('hi'), function(err, result){
-        console.log(err, result.length);
+        console.log(err, result);
         signature = result;
         callback(null);
     });
