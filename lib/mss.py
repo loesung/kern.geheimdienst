@@ -527,6 +527,7 @@ RETURN VALUE
             raise Exception('Not recognized operand.')
     except Exception,e:
         print cmdDesc
+#        print ' '.join(sys.argv)
         sys.exit(127)
 
     if len(cmdKey) != m / 8:
