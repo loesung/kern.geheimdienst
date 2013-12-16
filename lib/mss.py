@@ -320,7 +320,7 @@ Command-line logic
 if __name__ == '__main__':
     import time
 
-    treePlan = [4, 4, 4, 4, 4, 4]
+    treePlan = [3, 4, 4, 4, 4, 5]
 
     treeNum = len(treePlan)
     trees = [MSS(i) for i in treePlan]
@@ -368,26 +368,62 @@ if __name__ == '__main__':
             counter = counter >> treePlan[treeID]
 
             signature += result[0] + result[1] + result[2]
-
-        print len(signature)
+#        print len(signature)
         
         return {'result': ''.join(signature), 'cache': str(c)}
 
     def verify(publicKey, signature, message):
-        if len(signature) / m != (2 * l * treeNum + sum(treePlan)):
+        def arrayGen(src):
+            byteLen = m / 8
+            count = len(src) / byteLen
+            ret = ['',] * count
+            for i in xrange(0, count):
+                ret[i] = src[i * byteLen:][:byteLen]
+            return ret
+
+        if len(signature) / m != (2 * l * treeNum + sum(treePlan)) / 8:
             return False
 
+        toVerify = message
+        for i in xrange(0, treeNum):
+            treeID = treeNum - 1 - i
+            cStrLen = (2 * l + treePlan[treeID]) * m / 8
+            cStr = signature[:cStrLen]
+            signature = signature[cStrLen:]
+#           print len(cStr)
 
-    def derivePublicKey(privateKey, cacheStr=False):
-        c = cache(privateKey, cacheStr)
-        if c.root != '':
-            root = c.root
-        else:
-            root = mss.root(deriveSeed(privateKey, 0))
-            c.setPublicKey(root)
-        return {'result': root, 'cache': str(c)}
+            authLen = treePlan[treeID] * m / 8
+            auth = arrayGen(cStr[-authLen:])
 
-    print sign('', 'abcd', False)['result'].encode('base64')
+            cStr = cStr[0:-authLen]
+            pub = cStr[:len(cStr)/2]
+            sig = cStr[len(pub):]
+            pub = arrayGen(pub)
+            sig = arrayGen(sig)
+
+#           print len(auth), len(pub), len(sig)
+            if 0 == treeID:
+                return trees[treeID].verify(
+                    pub, sig, auth, toVerify, publicKey)
+            else:
+                verification = trees[treeID].verify(pub, sig, auth, toVerify)
+                if type(verification) == str:
+                    toVerify = verification
+                print verification.encode('hex')
+
+
+    def derivePublicKey(privateKey):
+        root = trees[0].root(deriveSeed(privateKey, 0))
+        return root 
+
+    root = derivePublicKey('')
+    print 'Derived public key:', root.encode('hex')
+
+    signature = sign('', 'abcd', False)['result']
+    verification = verify(root, signature, 'abcd')
+
+    if verification:
+        print 'Verification: OK'
 
     """
     t0b = time.time()
