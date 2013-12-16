@@ -44,7 +44,6 @@ Those who are interested in this algorithm should consider implement it in C,
 or use hardware acceleration, in which way the capacity can be largely
 extended and relativly small sizes maintained by choosing large w(or w_bits).
 """
-import json
 import math
 import hashlib
 
@@ -319,6 +318,8 @@ Command-line logic
 """
 if __name__ == '__main__':
     import time
+    import hmac
+    import pickle as serialization 
 
     treePlan = [3, 4, 4, 4, 4, 5]
 
@@ -329,31 +330,75 @@ if __name__ == '__main__':
         concat = privateKey + 'leaf' + hex(treeID)[2:].rjust(2, '0')
         return hashAlgorithm(concat).digest()
 
-    class cache:
+    class CACHE:
         counter = 0
-
+        _cache = {}
         def __init__(self, privateKey, cacheStr=False):
-            pass
+            self._key = privateKey
 
-        def __toString__(self):
-            return ''
+            if cacheStr != False:
+                try:
+                    h = cacheStr[:m / 4]
+                    j = cacheStr[len(h):]
+                    jh = hmac.HMAC(self._key, j, hashAlgorithm).hexdigest()
+                    if jh != h:
+                        raise Exception()
 
-        def setTreeSig(self):
-            pass
+                    deserialized = serialization.loads(j)
+                    self.counter = deserialized['counter']
+                    self._cache = deserialized['cache']
+
+                    print 'Load cache, counter=%d' % self.counter
+                except Exception,e:
+                    print e
+                    raise Exception('Invalid cache or private key.')
+
+        def __str__(self):
+            j = serialization.dumps({
+                'counter': self.counter,
+                'cache': self._cache,
+            })
+            h = hmac.HMAC(self._key, j, hashAlgorithm).hexdigest()
+            return h + j
+
+        def setTreeSig(self, treeID, leafID, signature):
+            print 'Set to cache Tree#%d, leaf#%d, siglen=%d.' % (treeID, leafID, len(signature))
+            self._cache[treeID] = {
+                'leaf': leafID,
+                'sig': signature
+            }
+
+        def getTreeSig(self, treeID, leafID):
+            try:
+                if self._cache.has_key(treeID):
+                    cached = self._cache[treeID]
+                    if cached['leaf'] == leafID:
+                        return cached['sig']
+                    else:
+                        return False
+            except:
+                pass
+            return False
 
 
     def sign(privateKey, message, cacheStr=False):
         signature = [] 
-        c = cache(privateKey, cacheStr)
-        c.counter = 1000
+        c = CACHE(privateKey, cacheStr)
         c.counter += 1
        
         toSign = message
         counter = c.counter
         for i in xrange(0, treeNum):
             treeID = treeNum - 1 - i    # 5 > 4 > 3 > 2 > 1 > 0
-            treeSeed = deriveSeed(privateKey, treeID)
             leafID = counter & 0xf
+            
+            if i > 0:
+                cached = c.getTreeSig(treeID, leafID)
+                if cached != False:
+                    signature += cached
+                    continue
+
+            treeSeed = deriveSeed(privateKey, treeID)
             # otsPubKey, otsSig, auths, root
             result = trees[treeID].sign(treeSeed, leafID, toSign)
 
@@ -367,7 +412,10 @@ if __name__ == '__main__':
             toSign = result[3]
             counter = counter >> treePlan[treeID]
 
-            signature += result[0] + result[1] + result[2]
+            treeSig = result[0] + result[1] + result[2]
+            if i > 0:
+                c.setTreeSig(treeID, leafID, treeSig)
+            signature += treeSig 
 #        print len(signature)
         
         return {'result': ''.join(signature), 'cache': str(c)}
@@ -409,6 +457,8 @@ if __name__ == '__main__':
                 verification = trees[treeID].verify(pub, sig, auth, toVerify)
                 if type(verification) == str:
                     toVerify = verification
+                if not verification:
+                    return False
                 print verification.encode('hex')
 
 
@@ -419,11 +469,20 @@ if __name__ == '__main__':
     root = derivePublicKey('')
     print 'Derived public key:', root.encode('hex')
 
-    signature = sign('', 'abcd', False)['result']
-    verification = verify(root, signature, 'abcd')
+    sigRet = sign('', 'abcd', False)
+    cache = sigRet['cache'] 
 
-    if verification:
-        print 'Verification: OK'
+    for i in xrange(0,10):
+        sigRet = sign('', 'abcd', cache)
+        cache = sigRet['cache'] 
+        signature = sigRet['result']
+        verification = verify(root, signature, 'abcd')
+
+        if verification:
+            print 'Verification: OK'
+
+#    manipulation = 10573
+#    signature = signature[:manipulation] + 'a' + signature[manipulation+1:]
 
     """
     t0b = time.time()
