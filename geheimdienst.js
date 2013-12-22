@@ -11,18 +11,22 @@ $.global.set('config', $.config.createConfig('./config/'));
 
 var socketPath = $.global.get('config').get('socket-path'),
     storagePath = $.global.get('config').get('storage-path'),
-    passphrase = process.argv;
+    passphrase = process.argv[2];
 
-console.log(passphrase);
+if(!$.types.isString(passphrase)){
+    console.log('Need a passphrase.');
+    process.exit(1);
+};
 
 var IPCServer = $.net.IPC.server(socketPath);
 console.log('IPC Server created at: ' + socketPath);
 
 $.global.set('storage', _.storage(
     $.process.resolvePath(storagePath),
-    'a'
+    passphrase
 ));
 console.log('Storage read from: ', $.process.resolvePath(storagePath));
+
 
 IPCServer.on('data', require('./site/__init__.js'));
 IPCServer.on('error', function(err){
