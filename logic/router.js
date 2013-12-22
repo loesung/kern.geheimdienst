@@ -24,8 +24,8 @@ for(var i in includes){
                 methods = handler.configure.method;
             if(methods.indexOf(e.method) < 0)
                 return false;
-            if('post' == e.request.method){
-                e.request.on('ready', function(post){
+            if('post' == e.method){
+                e.on('ready', function(post){
                     data['__post__'] = post;
                     for(var i in post.parsed)
                         if(undefined == data[i])
@@ -42,12 +42,6 @@ for(var i in includes){
 };
 
 module.exports = function(e){
-
-    var table = {
-        '^\/encrypt\/(key|codebook)$': require('./router.encrypt.js')(e),
-        '^\/decrypt\/(analyze)?$': require('./router.decrypt.js')(e),
-    };
-
     return function(callback){
         console.log(e.request.url);
         for(var i in handlers){
