@@ -1,4 +1,18 @@
+var includes = [
+    
+];
+var handlers = [];
+
+for(var i in includes){
+    var handler = require(includes[i]);
+    handlers.push((function(handler){
+        
+    })(handler));
+};
+
 module.exports = function(e){
+
+
     var table = {
         '^\/encrypt\/(key|codebook)$': require('./router.encrypt.js')(e),
         '^\/decrypt\/(analyze)?$': require('./router.decrypt.js')(e),
