@@ -18,22 +18,30 @@ if(!$.types.isString(passphrase)){
     process.exit(1);
 };
 
-var IPCServer = $.net.IPC.server(socketPath);
-console.log('IPC Server created at: ' + socketPath);
-
 $.global.set('storage', _.storage(
     $.process.resolvePath(storagePath),
     passphrase
 ));
 console.log('Storage read from: ', $.process.resolvePath(storagePath));
 
-
-IPCServer.on('data', require('./site/__init__.js'));
-IPCServer.on('error', function(err){
-    try{
-        console.log('ERROR! ' + err);
-    } catch(e){
+var IPCServer;
+$.global.get('storage').load(function(err){
+    if(null != err){
+        console.log('Failed to read storage using given passphrase.');
+        process.exit(1);
+        return;
     };
-});
 
-IPCServer.start();
+    IPCServer = $.net.IPC.server(socketPath);
+    console.log('IPC Server created at: ' + socketPath);
+
+    IPCServer.on('data', require('./site/__init__.js'));
+    IPCServer.on('error', function(err){
+        try{
+            console.log('ERROR! ' + err);
+        } catch(e){
+        };
+    });
+
+    IPCServer.start();
+});
