@@ -1,17 +1,19 @@
 module.exports = function(){
-    return {
-        pattern: /^\/codebook\/(decrypt|encrypt)\/?$/,
-        mapping: {
-            1: 'action',
-        },
+    return [
+        {
+            pattern: /^\/codebook\/new\/(sharedsecret|letter)\/?$/,
+            mapping: {
+                1: 'action',
+            },
 
-        configure: {
-            method: ['post', 'get'],
+            configure: {
+                method: ['post', 'get'],
 
-        },
+            },
 
-        handler: function(data, callback){
-            callback(null, JSON.stringify(data));
+            handler: function(data, callback){
+                callback(null, JSON.stringify(data));
+            },
         },
-    };
+    ];
 };
