@@ -1,3 +1,4 @@
 [
-    {"name": "socket-path", "type": "string"}
+    {"name": "socket-path", "type": "string"},
+    {"name": "storage-path", "type": "string"}
 ]

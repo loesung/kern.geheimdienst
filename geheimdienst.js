@@ -9,10 +9,20 @@ require('./lib/_.js');
 
 $.global.set('config', $.config.createConfig('./config/'));
 
-var socketPath = $.global.get('config').get('socket-path');
+var socketPath = $.global.get('config').get('socket-path'),
+    storagePath = $.global.get('config').get('storage-path'),
+    passphrase = process.argv;
+
+console.log(passphrase);
 
 var IPCServer = $.net.IPC.server(socketPath);
 console.log('IPC Server created at: ' + socketPath);
+
+$.global.set('storage', _.storage(
+    $.process.resolvePath(storagePath),
+    'a'
+));
+console.log('Storage read from: ', $.process.resolvePath(storagePath));
 
 IPCServer.on('data', require('./site/__init__.js'));
 IPCServer.on('error', function(err){
