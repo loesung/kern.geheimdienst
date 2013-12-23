@@ -37,14 +37,19 @@ def generate(bits):
 def examine(key):
     try:
         key = RSA.importKey(key)
-        return {
-            'size': key.size(),
+        ret = {
+            'size': key.size() + 1,
             'private': key.has_private(),
             'encrypt': key.can_encrypt() and (not key.has_private()),
             'decrypt': key.can_encrypt() and key.has_private(),
             'sign': key.can_sign() and key.has_private(),
             'verify': key.can_sign() and (not key.has_private()),
         }
+        if ret['private']:
+            ret['public'] = key.publickey().exportKey('DER').encode('base64')
+        else:
+            ret['public'] = False
+        return ret
     except Exception,e:
         return False
 
@@ -106,6 +111,7 @@ def verify(pubKey, message, signature):
 
 
 if __name__ == '__main__':
+    import json
     import sys
     
     cmdDesc = """
@@ -172,7 +178,7 @@ RETURN VALUE
         if examineRet == False:
             print 'Cannot read this key.'
             sys.exit(1)
-        print examineRet
+        print json.dumps(examineRet)
         sys.exit(0)
 
     if cmdOperand == 'verify':
