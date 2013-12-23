@@ -117,7 +117,21 @@ SYNOPSIS
     python rsa.py examine <key>
     python rsa.py verify <key> <data> <signature>
     python rsa.py <sign|encrypt|decrypt> <key> <data>
-    """
+
+NOTICE
+    1. <bits> should be one of following values:
+        %s
+       other values will be rejected.
+    2. <key>, <data> and <signature> are all HEX-encoded strings.
+
+RETURN VALUE
+    0       if all job done without questions. If <operand> is 'verify', this
+            means the verification is done and result is positive.
+    1       inputed parameter seems wrong.
+    3       the verification failed due to corrupted data or signature.
+    127     bad input received and help info is displayed.
+
+    """ % (' '.join([str(i) for i in _policy_.keys()]), )
     cmdDesc = cmdDesc.strip()
 
     try:
@@ -128,10 +142,14 @@ SYNOPSIS
             cmdKey = sys.argv[2].decode('hex')
             if cmdOperand == 'examine':
                 pass
-            elif cmdOperand == 'verify':
-                pass
-            elif cmdOperand in ['sign', 'encrypt', 'decrypt']:
-                pass
+            else:
+                cmdData = sys.argv[3].decode('hex')
+                if cmdOperand == 'verify':
+                    cmdSignature = sys.argv[4].decode('hex')
+                elif cmdOperand in ['sign', 'encrypt', 'decrypt']:
+                    pass
+                else:
+                    raise Exception()
 
     except Exception,e:
         print cmdDesc
@@ -155,3 +173,14 @@ SYNOPSIS
             sys.exit(1)
         print examineRet
         sys.exit(0)
+
+    if cmdOperand == 'verify':
+        try:
+            verifyRet = verify(cmdKey, cmdData, cmdSignature)
+        except ValueError,e:
+            print 'Invalid key.'
+            sys.exit(1)
+        if verifyRet == True:
+            sys.exit(0)
+        else:
+            sys.exit(3)
