@@ -7,6 +7,8 @@ rsa.generate(2048, function(err, result){
         return console.log('err');
    
     rsa.encrypt(new $.nodejs.buffer.Buffer('a'), function(err, result){
-        console.log(result.toString());
+        rsa.decrypt(result, function(err, result){
+            console.log(err, result.toString());
+        });
     });
 });
