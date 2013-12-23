@@ -160,6 +160,7 @@ RETURN VALUE
         if genRet:
             pubKey, prvKey = genRet
             print pubKey.encode('base64')
+            print '*'
             print prvKey.encode('base64')
         else:
             print 'Parameter of bits is not acceptable.'
@@ -184,3 +185,30 @@ RETURN VALUE
             sys.exit(0)
         else:
             sys.exit(3)
+
+    if cmdOperand == 'sign':
+        try:
+            signRet = sign(cmdKey, cmdData)
+        except ValueError,e:
+            print 'Invalid key.'
+            sys.exit(1)
+        print signRet.encode('base64')
+        sys.exit(0)
+
+    if cmdOperand == 'encrypt':
+        try:
+            encryptRet = encrypt(cmdKey, cmdData)
+        except ValueError,e:
+            print 'Invalid key.'
+            sys.exit(1)
+        print encryptRet.encode('base64')
+        sys.exit(0)
+
+    if cmdOperand == 'decrypt':
+        try:
+            decryptRet = decrypt(cmdKey, cmdData)
+        except ValueError,e:
+            print 'Invalid key.'
+            sys.exit(1)
+        print decryptRet.encode('base64')
+        sys.exit(0)
