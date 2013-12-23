@@ -115,19 +115,31 @@ RSA: public key cryptography for digital signature and encryption
 SYNOPSIS
     python rsa.py generate <bits>
     python rsa.py examine <key>
-    python rsa.py <sign|verify|encrypt|decrypt> <key> <data>
+    python rsa.py verify <key> <data> <signature>
+    python rsa.py <sign|encrypt|decrypt> <key> <data>
     """
     cmdDesc = cmdDesc.strip()
 
     try:
-        cmdOperand = sys.argv[1]
+        cmdOperand = sys.argv[1].strip().lower()
+        if cmdOperand == 'generate':
+            cmdBits = int(sys.argv[2])
+        else:
+            if cmdOperand == 'examine':
+                pass
+            elif cmdOperand in ['sign', 'verify', 'encrypt', 'decrypt']:
+                pass
+
     except Exception,e:
-        pass
+        print cmdDesc
+        sys.exit(127)
 
-    pubKey, prvKey = generate(3072)
-
-    signature = sign(prvKey, 'message')
-    print verify(pubKey, 'message', signature)
-
-    print examine(pubKey)
-    print examine(prvKey)
+    if cmdOperand == 'generate':
+        genRet = generate(cmdBits)
+        if genRet:
+            pubKey, prvKey = genRet
+            print pubKey.encode('base64')
+            print prvKey.encode('base64')
+        else:
+            print 'Parameter of bits is not acceptable.'
+            sys.exit(1)
