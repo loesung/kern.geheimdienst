@@ -125,9 +125,12 @@ SYNOPSIS
         if cmdOperand == 'generate':
             cmdBits = int(sys.argv[2])
         else:
+            cmdKey = sys.argv[2].decode('hex')
             if cmdOperand == 'examine':
                 pass
-            elif cmdOperand in ['sign', 'verify', 'encrypt', 'decrypt']:
+            elif cmdOperand == 'verify':
+                pass
+            elif cmdOperand in ['sign', 'encrypt', 'decrypt']:
                 pass
 
     except Exception,e:
@@ -143,3 +146,12 @@ SYNOPSIS
         else:
             print 'Parameter of bits is not acceptable.'
             sys.exit(1)
+        sys.exit(0)
+
+    if cmdOperand == 'examine':
+        examineRet = examine(cmdKey)
+        if examineRet == False:
+            print 'Cannot read this key.'
+            sys.exit(1)
+        print examineRet
+        sys.exit(0)
