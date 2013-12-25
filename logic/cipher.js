@@ -8,19 +8,17 @@
 */
 
 module.exports = function(){
-    return {
-        pattern: /^\/cipher\/(decrypt|encrypt)\/?$/,
-        mapping: {
-            1: 'action',
-        },
+    var router = $.net.urlRouter();
 
-        configure: {
-            method: ['post', 'get'],
-
+    router.handle(
+        'encrypt',
+        function(data, callback){
         },
+        {
+            methods: ['post', 'get'],
+        }
+    );
+    router.handle('decrypt', function(){});
 
-        handler: function(data, callback){
-            callback(null, JSON.stringify(data));
-        },
-    };
+    return router;
 };

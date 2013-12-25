@@ -4,59 +4,50 @@ var includes = [
 ];
 var handlers = [];
 
+$.global.set('router', $.net.urlRouter());
 for(var i in includes){
-    var getHandler = require('./' + includes[i] + '.js')();
-    if(!$.types.isArray(getHandler)) getHandler = [getHandler];
+    $.global.get('router').sub(
+        includes[i],
+        require('./' + includes[i] + '.js')()
+    );
+};
 
-    for(var i in getHandler){
-        var handler = getHandler[i];
-        handlers.push((function(handler){
-            console.log('add handler');
-            return function(e, callback){
-                var execResult = handler.pattern.exec(e.request.url);
-                if(null == execResult) return false;
+function callHandler(handler){
+    return function(e, callback){
+        var options = handler.__options;
+        var data = {
+            get: $.nodejs.querystring.parse(
+                $.nodejs.url.parse(e.request.url).query
+            ),
+            post: {},
+        };
 
-                // convert url regexp matched result into 'data'.
-                var data = {};
-                if(handler.mapping){
-                    for(var i in handler.mapping){
-                        if(undefined == execResult[i])
-                            data[handler.mapping[i]] = null;
-                        else
-                            data[handler.mapping[i]] = execResult[i];
-                    };
-                };
+        // deal with http method.
+        var methods = ['post', 'get'];
+        if(options && options.methods)
+            methods = handler.methods;
+        if(methods.indexOf(e.method) < 0)
+            return false;
+        if('post' == e.method){
+            e.on('ready', function(post){
+                data.post = post.parsed; // raw data is not passed.
+                handler(data, callback);
+            });
+        } else {
+            handler(data, callback);
+        };
 
-                // deal with http method.
-                var methods = ['post', 'get'];
-                if(handler.configure && handler.configure.method)
-                    methods = handler.configure.method;
-                if(methods.indexOf(e.method) < 0)
-                    return false;
-                if('post' == e.method){
-                    e.on('ready', function(post){
-                        data['__post__'] = post;
-                        for(var i in post.parsed)
-                            if(undefined == data[i])
-                                data[i] = post.parsed[i];
-                        handler.handler(data, callback);
-                    });
-                } else {
-                    handler.handler(data, callback);
-                };
-
-                return true;
-            };
-        })(handler));
+        return true;
     };
 };
 
 module.exports = function(e){
     return function(callback){
         console.log(e.request.url);
-        for(var i in handlers){
-            if(handlers[i](e, callback)) break;
-        };
-        callback(400);
+
+        var handler = $.get('router')(e.request.url);
+        if(!handler) return callback(400);
+
+        callHandler(handler)(e, callback);
     };
 };
