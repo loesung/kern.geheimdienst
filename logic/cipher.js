@@ -13,6 +13,7 @@ module.exports = function(){
     router.handle(
         'encrypt',
         function(data, callback){
+            callback(null, JSON.stringify(data));
         },
         {
             methods: ['post', 'get'],

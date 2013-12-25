@@ -25,9 +25,9 @@ function callHandler(handler){
         // deal with http method.
         var methods = ['post', 'get'];
         if(options && options.methods)
-            methods = handler.methods;
+            methods = options.methods;
         if(methods.indexOf(e.method) < 0)
-            return false;
+            return callback(false);
         if('post' == e.method){
             e.on('ready', function(post){
                 data.post = post.parsed; // raw data is not passed.
@@ -36,8 +36,6 @@ function callHandler(handler){
         } else {
             handler(data, callback);
         };
-
-        return true;
     };
 };
 
@@ -45,7 +43,7 @@ module.exports = function(e){
     return function(callback){
         console.log(e.request.url);
 
-        var handler = $.get('router')(e.request.url);
+        var handler = $.global.get('router')(e.request.url);
         if(!handler) return callback(400);
 
         callHandler(handler)(e, callback);
