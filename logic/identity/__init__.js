@@ -1,16 +1,15 @@
-function add(data, callback){
-};
+var identity = $.global.get('storage').table('identity');
 
-function list(data, callback){
-    var identity = $.global.get('storage').table('identity');
-    callback(null, identity());
+var handlers = {
+    add: require('./add.js')(identity),
+    _: require('./list.js')(identity),
 };
 
 module.exports = function(){
     var router = $.net.urlRouter();
 
-    router.handle('add', add, {methods: ['post']});
-    router.handle('', list);
+    router.handle('add', handlers.add, {methods: ['post']});
+    router.handle('', handlers._);
 
     return router;
 };
