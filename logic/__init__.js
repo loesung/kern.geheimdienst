@@ -12,14 +12,18 @@ module.exports = function(e){
         ],
         function(err, result){
             if(null != err){
-                if(isNaN(err))
-                    e.response.writeHead(400);
-                else
-                    e.response.writeHead(err);
-                e.response.end();
+                var code = 400;
+                if($.types.isNumber(err))
+                    code = err;
+                e.response.end(
+                    code + ': ' + $.nodejs.http.STATUS_CODES[code]
+                );
             } else {
                 e.response.writeHead(200);
-                e.response.end(result);
+                if($.types.isString(result))
+                    e.response.end(result);
+                else
+                    e.response.end(JSON.stringify(result));
             };
         }
     );

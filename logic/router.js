@@ -1,6 +1,6 @@
 var includes = [
     'cipher',
-//    'codebook',
+    'identity',
 ];
 var handlers = [];
 
@@ -29,7 +29,7 @@ function callHandler(handler){
         if(options && options.methods)
             methods = options.methods;
         if(methods.indexOf(e.method) < 0)
-            return callback(false);
+            return callback(405);
         if('post' == e.method){
             e.on('ready', function(post){
                 data.post = post.parsed; // raw data is not passed.
