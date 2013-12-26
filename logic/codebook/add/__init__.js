@@ -35,7 +35,7 @@ module.exports = function(codebook){
 
         // save codebook id.
         workflow.push(function(codebookID, callback){
-            if(!codebook(codebookID)) return callback(409); // duplicated XXX find out why this doesnot work
+            if(codebook(codebookID)) return callback(409); // duplicated XXX find out why this doesnot work
             newCodebook.id = codebookID;
             callback(null);
         });
@@ -43,7 +43,6 @@ module.exports = function(codebook){
         // FINAL
         $.nodejs.async.waterfall(workflow, function(err){
             if(null != err) return rueckruf(err);
-            console.log(newCodebook);
             codebook(newCodebook.id, newCodebook);
             rueckruf(null, newCodebook);
         });

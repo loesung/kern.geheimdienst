@@ -33,7 +33,7 @@ module.exports = function(codebook, addFunc){
             life,
 
             function(err, result){
-                if(null != err) return callback(422);
+                if(null != err) return callback((isNaN(err)?422:err));
                 callback(null, result);
             }
         );
