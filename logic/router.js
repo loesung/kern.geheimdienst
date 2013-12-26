@@ -8,7 +8,7 @@ $.global.set('router', $.net.urlRouter());
 for(var i in includes){
     $.global.get('router').sub(
         includes[i],
-        require('./' + includes[i] + '.js')()
+        require('./' + includes[i] + '/__init__.js')()
     );
 };
 
