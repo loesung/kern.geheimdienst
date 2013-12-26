@@ -1,5 +1,5 @@
 module.exports = function(codebook){
-    function addFunc(owners, credential, status, rueckruf){
+    function addFunc(owners, credential, status, life, rueckruf){
         var workflow = [];
 
         var newCodebook = {
@@ -7,7 +7,8 @@ module.exports = function(codebook){
             credential: null,
             owners: owners,
             status: status,
-            creation: (new Date().getTime()),
+            creation: Math.round(new Date().getTime() / 1000),
+            life: life,
         };
         
         // make credential more random 
@@ -34,15 +35,17 @@ module.exports = function(codebook){
 
         // save codebook id.
         workflow.push(function(codebookID, callback){
+            if(!codebook(codebookID)) return callback(409); // duplicated XXX find out why this doesnot work
             newCodebook.id = codebookID;
             callback(null);
         });
 
         // FINAL
         $.nodejs.async.waterfall(workflow, function(err){
-            if(null != err) return rueckruf(true);
+            if(null != err) return rueckruf(err);
+            console.log(newCodebook);
             codebook(newCodebook.id, newCodebook);
-            rueckruf(null);
+            rueckruf(null, newCodebook);
         });
     };
 

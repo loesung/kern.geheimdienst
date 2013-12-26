@@ -3,7 +3,7 @@ module.exports = function(codebook){
         return {
             id: aCodebook.id,
             owners: aCodebook.owner,
-            status: aCodebook.state,
+            status: aCodebook.status,
             creation: aCodebook.creation,
         };
     };
@@ -15,7 +15,7 @@ module.exports = function(codebook){
         if(undefined == identityQuery && undefined == codebookQuery)
             return callback(403);   // cannot list all codebook
 
-        if(undefined != identityQuery && undefined != identityQuery)
+        if(undefined != identityQuery && undefined != codebookQuery)
             return callback(409);   // conflict
 
         if(codebookQuery){
@@ -33,7 +33,7 @@ module.exports = function(codebook){
         if(identityQuery){
             identityQuery = identityQuery.toLowerCase();
 
-            if(!_object.test.identity.id(identityQuery))
+            if(!_.object.test.identity.id(identityQuery))
                 return callback(400); // bad identity id
             
             var allCodebooks = codebook(),

@@ -2,7 +2,14 @@ module.exports = function(codebook, addFunc){
     return function(data, callback){
         var sharedsecret = data.post.sharedsecret,
             description = data.post.description,
+            life = data.post.life,
             owners = [];
+
+        if(undefined == life)
+            life = 864000;
+        else
+            if(!_.object.test.codebook.life(life))
+                return callback(400);
 
         try{
             sharedsecret = new $.nodejs.buffer.Buffer(sharedsecret, 'hex');
@@ -22,11 +29,12 @@ module.exports = function(codebook, addFunc){
         addFunc(
             owners,
             sharedsecret,
-            _.object.enumerate.codebook.status.ESTABLISHED
+            _.object.enumerate.codebook.status.ESTABLISHED,
+            life,
 
-            function(err){
+            function(err, result){
                 if(null != err) return callback(422);
-                callback(null);
+                callback(null, result);
             }
         );
     };
