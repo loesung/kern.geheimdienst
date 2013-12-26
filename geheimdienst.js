@@ -28,6 +28,7 @@ var IPCServer;
 $.global.get('storage').load(function(err){
     if(null != err){
         console.log('Failed to read storage using given passphrase.');
+        console.log(err);
         process.exit(1);
         return;
     };

@@ -1,6 +1,6 @@
 var includes = [
     'cipher',
-    'codebook',
+//    'codebook',
 ];
 var handlers = [];
 
@@ -8,7 +8,9 @@ $.global.set('router', $.net.urlRouter());
 for(var i in includes){
     $.global.get('router').sub(
         includes[i],
-        require('./' + includes[i] + '/__init__.js')()
+        require(
+            $.process.resolvePath('./logic/' + includes[i] + '/__init__.js')
+        )()
     );
 };
 
