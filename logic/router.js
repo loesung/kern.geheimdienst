@@ -1,6 +1,6 @@
 var includes = [
-    'cipher',
     'identity',
+    'codebook',
 ];
 var handlers = [];
 
