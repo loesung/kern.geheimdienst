@@ -35,7 +35,7 @@ module.exports = function(codebook){
 
         // save codebook id.
         workflow.push(function(codebookID, callback){
-            if(codebook(codebookID)) return callback(409); // duplicated XXX find out why this doesnot work
+            if(codebook(codebookID)) return callback(409); // duplicated
             newCodebook.id = codebookID;
             callback(null);
         });
