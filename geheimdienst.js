@@ -10,7 +10,8 @@ require('./lib/_.js');
 $.global.set('config', $.config.createConfig('./config/'));
 
 var socketPath = $.global.get('config').get('socket-path'),
-    storagePath = $.global.get('config').get('storage-path'),
+    storagePath = 
+        $.process.resolvePath($.global.get('config').get('storage-path')),
     passphrase = process.argv[2];
 
 if(!$.types.isString(passphrase)){
@@ -18,31 +19,17 @@ if(!$.types.isString(passphrase)){
     process.exit(1);
 };
 
-$.global.set('storage', _.storage(
-    $.process.resolvePath(storagePath),
-    passphrase
-));
-console.log('Storage read from: ', $.process.resolvePath(storagePath));
+$.global.set('storage', _.storage(storagePath));
 
-var IPCServer;
-$.global.get('storage').load(function(err){
-    if(null != err){
-        console.log('Failed to read storage using given passphrase.');
-        console.log(err);
-        process.exit(1);
-        return;
+var IPCServer = $.net.IPC.server(socketPath);
+console.log('IPC Server created at: ' + socketPath);
+
+IPCServer.on('data', require('./logic/__init__.js'));
+IPCServer.on('error', function(err){
+    try{
+        console.log('ERROR! ' + err);
+    } catch(e){
     };
-
-    IPCServer = $.net.IPC.server(socketPath);
-    console.log('IPC Server created at: ' + socketPath);
-
-    IPCServer.on('data', require('./logic/__init__.js'));
-    IPCServer.on('error', function(err){
-        try{
-            console.log('ERROR! ' + err);
-        } catch(e){
-        };
-    });
-
-    IPCServer.start();
 });
+
+IPCServer.start();
