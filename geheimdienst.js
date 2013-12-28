@@ -11,13 +11,8 @@ $.global.set('config', $.config.createConfig('./config/'));
 
 var socketPath = $.global.get('config').get('socket-path'),
     storagePath = 
-        $.process.resolvePath($.global.get('config').get('storage-path')),
-    passphrase = process.argv[2];
-
-if(!$.types.isString(passphrase)){
-    console.log('Need a passphrase.');
-    process.exit(1);
-};
+        $.process.resolvePath($.global.get('config').get('storage-path'))
+;
 
 $.global.set('storage', _.storage(storagePath));
 
