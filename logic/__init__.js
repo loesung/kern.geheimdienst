@@ -11,24 +11,25 @@ module.exports = function(e){
             processors['router'](e), // must return a result.
         ],
         function(err, result){
+            console.log(err, result);
             if(null != err){
                 var code = 400;
-                if($.types.isNumber(err))
-                    code = err;
-                if(undefined == result){
-                    e.response.end(
-                        code + ': ' + $.nodejs.http.STATUS_CODES[code]
-                    );
-                    return;
-                };
+                if(!isNaN(err)) code = Math.round(err);
             } else {
                 var code = 200;
             };
+
             e.response.writeHead(code);
-            if($.types.isString(result))
-                e.response.end(result);
-            else
-                e.response.end(JSON.stringify(result));
+            if(undefined == result){
+                e.response.end(
+                    code + ': ' + $.nodejs.http.STATUS_CODES[code]
+                );
+            } else {
+                if($.types.isString(result))
+                    e.response.end(result);
+                else
+                    e.response.end(JSON.stringify(result));
+            };
         }
     );
 };

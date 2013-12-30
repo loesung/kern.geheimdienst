@@ -7,7 +7,7 @@ module.exports = function(dataSource){
 
         var indexID = 'index-' + identityID,
             keysID = dataSource.pki(indexID),
-            keyID, keyRecord;
+            keyID, keyRecord, keyEntry;
 
         var ret = {},
             enumerator = _.object.enumerate.pki;
@@ -15,12 +15,13 @@ module.exports = function(dataSource){
         for(var i in keysID){
             keyID = keysID[i];
             keyRecord = dataSource.pki(keyID);
-
             if(null == keyRecord) continue;
 
+            keyEntry = keyRecord.entry;
+
             // read necessary info and record to 'ret'.
-            var keyClass = enumerator.keyClass[keyRecord['keyClass']],
-                keyAlgo = enumerator.keyAlgo[keyRecord['keyAlgo']];
+            var keyClass = enumerator.keyClass[keyEntry['keyClass']],
+                keyAlgo = enumerator.keyAlgo[keyEntry['keyAlgo']];
 
             if(
                 (undefined == keyClass) ||
