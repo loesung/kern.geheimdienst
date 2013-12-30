@@ -6,12 +6,9 @@ var handlers = {
     '': require('./list.js')(identity),
 };
 
-module.exports = function(){
-    var router = $.net.urlRouter();
+var router = $.net.urlRouter();
+module.exports = router; 
 
-    router.handle('add', handlers['add'], {methods: ['post']});
-    router.handle('delete', handlers['delete'], {methods: ['post']});
-    router.handle('', handlers['']);
-
-    return router;
-};
+router.handle('add', handlers['add'], {methods: ['post']});
+router.handle('delete', handlers['delete'], {methods: ['post']});
+router.handle('', handlers['']);

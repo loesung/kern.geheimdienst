@@ -15,16 +15,20 @@ module.exports = function(e){
                 var code = 400;
                 if($.types.isNumber(err))
                     code = err;
-                e.response.end(
-                    code + ': ' + $.nodejs.http.STATUS_CODES[code]
-                );
+                if(undefined == result){
+                    e.response.end(
+                        code + ': ' + $.nodejs.http.STATUS_CODES[code]
+                    );
+                    return;
+                };
             } else {
-                e.response.writeHead(200);
-                if($.types.isString(result))
-                    e.response.end(result);
-                else
-                    e.response.end(JSON.stringify(result));
+                var code = 200;
             };
+            e.response.writeHead(code);
+            if($.types.isString(result))
+                e.response.end(result);
+            else
+                e.response.end(JSON.stringify(result));
         }
     );
 };

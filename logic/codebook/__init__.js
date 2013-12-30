@@ -5,12 +5,9 @@ var handlers = {
     '': require('./list.js')(codebook),
 };
 
-module.exports = function(){
-    var router = $.net.urlRouter();
+var router = $.net.urlRouter();
+module.exports = router;
 
-    router.sub('add', handlers['add']);
-    //router.handle('delete', handlers['delete'], {methods: ['post']});
-    router.handle('', handlers['']);
-
-    return router;
-};
+router.sub('add', handlers['add']);
+//router.handle('delete', handlers['delete'], {methods: ['post']});
+router.handle('', handlers['']);

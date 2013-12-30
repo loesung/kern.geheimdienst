@@ -1,6 +1,7 @@
 var includes = [
     'identity',
     'codebook',
+    'pki',
 ];
 var handlers = [];
 
@@ -10,7 +11,7 @@ for(var i in includes){
         includes[i],
         require(
             $.process.resolvePath('./logic/' + includes[i] + '/__init__.js')
-        )()
+        )
     );
 };
 
