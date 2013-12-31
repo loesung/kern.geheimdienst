@@ -14,9 +14,27 @@ The interface provides following features:
 
 from ecdsa import SigningKey, VerifyingKey
 from ecdsa import NIST192p, NIST224p, NIST256p, NIST384p, NIST521p
+from Crypto.Hash import SHA, SHA224, SHA256, SHA384, SHA512
 
-def generate(bits):
-    pass
+_policy_ = {
+    'NIST192p': (NIST192p,SHA512),
+    'NIST224p': (NIST224p,SHA512),
+    'NIST256p': (NIST256p,SHA512),
+    'NIST384p': (NIST384p,SHA512),
+    'NIST521p': (NIST521p,SHA512),
+}
+
+def generate(curve):
+    if curve not in _policy_.keys():
+        return False
+    sk = SigningKey.generate(curve=_policy_[curve][0])
+    vk = sk.get_verifying_key()
+
+    pubKey = vk.to_der()
+    prvKey = sk.to_der()
+    return (pubKey, prvKey)
+
+# TODO above is done. modify following.
 
 def sign(prvKey, message):
     key = RSA.importKey(prvKey)
