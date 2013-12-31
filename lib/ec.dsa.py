@@ -15,6 +15,7 @@ import hashlib
 
 from ecdsa import SigningKey, VerifyingKey
 from ecdsa import NIST192p, NIST224p, NIST256p, NIST384p, NIST521p
+from ecdsa.keys import BadSignatureError
 
 _policy_ = {
     'NIST192p': (NIST192p, hashlib.sha1),
@@ -24,49 +25,32 @@ _policy_ = {
     'NIST521p': (NIST521p, hashlib.sha512),
 }
 
-def _getHashFunc(keylen):
-    if keylen >= 512:
-        return hashlib.sha512
-    elif keylen >= 384:
-        return hashlib.sha384
-    elif keylen >= 256:
-        return hashlib.sha256
-    elif keylen >= 224:
-        return hashlib.sha224
-    elif keylen >= 160:
-        return hashlib.sha1
-    else:
-        return hashlib.md5
-
 def generate(curve):
     if curve not in _policy_.keys():
         return False
     sk = SigningKey.generate(curve=_policy_[curve][0])
     vk = sk.get_verifying_key()
 
-    pubKey = vk.to_string()
-    prvKey = sk.to_string()
+    pubKey = vk.to_der()
+    prvKey = sk.to_der()
     return (pubKey, prvKey)
 
-# TODO above is done. modify following.
-
 def sign(prvKey, message):
-    sk = SigningKey.from_string(prvKey)
-    hashed = _getHashFunc(len(sk.to_string()))(message).digest()
-    signature = sk.sign(message)
+    sk = SigningKey.from_der(prvKey)
+    hashed = _policy_[sk.curve.name][1](message).digest()
+    signature = sk.sign(hashed)
     return signature
 
 def verify(pubKey, message, signature):
     try:
-        vk = VerifyingKey.from_string(pubKey)
-        hashed = _getHashFunc(len(sk.to_string()))(message).digest()
-        if verifier.verify(hashed, signature):
+        vk = VerifyingKey.from_der(pubKey)
+        hashed = _policy_[vk.curve.name][1](message).digest()
+        if vk.verify(signature, hashed):
             return True
         else:
             return False
     except Exception,e:
-        return False
-
+       return False
 
 if __name__ == '__main__':
     import json
@@ -103,19 +87,17 @@ RETURN VALUE
             cmdCurve = sys.argv[2].strip()
         else:
             cmdKey = sys.argv[2].decode('hex')
-            if cmdOperand == 'examine':
+            cmdData = sys.argv[3].decode('hex')
+            if cmdOperand == 'verify':
+                cmdSignature = sys.argv[4].decode('hex')
+            elif cmdOperand == 'sign':
                 pass
             else:
-                cmdData = sys.argv[3].decode('hex')
-                if cmdOperand == 'verify':
-                    cmdSignature = sys.argv[4].decode('hex')
-                elif cmdOperand in ['sign', 'encrypt', 'decrypt']:
-                    pass
-                else:
-                    raise Exception()
+                raise Exception()
 
     except Exception,e:
         print cmdDesc
+        print ' '.join(sys.argv)
         sys.exit(127)
 
     if cmdOperand == 'generate':
@@ -126,16 +108,8 @@ RETURN VALUE
             print '*'
             print prvKey.encode('base64')
         else:
-            print 'Parameter of bits is not acceptable.'
+            print 'Parameter of curve is not acceptable.'
             sys.exit(1)
-        sys.exit(0)
-
-    if cmdOperand == 'examine':
-        examineRet = examine(cmdKey)
-        if examineRet == False:
-            print 'Cannot read this key.'
-            sys.exit(1)
-        print json.dumps(examineRet)
         sys.exit(0)
 
     if cmdOperand == 'verify':
@@ -144,6 +118,9 @@ RETURN VALUE
         except ValueError,e:
             print 'Invalid key.'
             sys.exit(1)
+        except BadSignatureError,e:
+            print 'Bad signature'
+            sys.exit(3)
         if verifyRet == True:
             sys.exit(0)
         else:
@@ -153,6 +130,7 @@ RETURN VALUE
         try:
             signRet = sign(cmdKey, cmdData)
         except ValueError,e:
+            print e
             print 'Invalid key.'
             sys.exit(1)
         print signRet.encode('base64')
