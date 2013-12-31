@@ -11,18 +11,32 @@ The interface provides following features:
     * signing a message with a private key,
     * verifying a signature with a public key.
 """
+import hashlib
 
 from ecdsa import SigningKey, VerifyingKey
 from ecdsa import NIST192p, NIST224p, NIST256p, NIST384p, NIST521p
-from Crypto.Hash import SHA, SHA224, SHA256, SHA384, SHA512
 
 _policy_ = {
-    'NIST192p': (NIST192p,SHA512),
-    'NIST224p': (NIST224p,SHA512),
-    'NIST256p': (NIST256p,SHA512),
-    'NIST384p': (NIST384p,SHA512),
-    'NIST521p': (NIST521p,SHA512),
+    'NIST192p': (NIST192p, hashlib.sha1),
+    'NIST224p': (NIST224p, hashlib.sha224),
+    'NIST256p': (NIST256p, hashlib.sha256),
+    'NIST384p': (NIST384p, hashlib.sha384),
+    'NIST521p': (NIST521p, hashlib.sha512),
 }
+
+def _getHashFunc(keylen):
+    if keylen >= 512:
+        return hashlib.sha512
+    elif keylen >= 384:
+        return hashlib.sha384
+    elif keylen >= 256:
+        return hashlib.sha256
+    elif keylen >= 224:
+        return hashlib.sha224
+    elif keylen >= 160:
+        return hashlib.sha1
+    else:
+        return hashlib.md5
 
 def generate(curve):
     if curve not in _policy_.keys():
@@ -30,44 +44,27 @@ def generate(curve):
     sk = SigningKey.generate(curve=_policy_[curve][0])
     vk = sk.get_verifying_key()
 
-    pubKey = vk.to_der()
-    prvKey = sk.to_der()
+    pubKey = vk.to_string()
+    prvKey = sk.to_string()
     return (pubKey, prvKey)
 
 # TODO above is done. modify following.
 
 def sign(prvKey, message):
-    key = RSA.importKey(prvKey)
-    keySize = key.size() + 1
-    if keySize not in _policy_.keys():
-        return False
-    else:
-        hasher = _policy_[keySize]
-
-    if not (key.has_private() and key.can_sign()):
-        return False
-    h = hasher.new()
-    h.update(message)
-    signer = PKCS1_PSS.new(key)
-    signature = signer.sign(h)
+    sk = SigningKey.from_string(prvKey)
+    hashed = _getHashFunc(len(sk.to_string()))(message).digest()
+    signature = sk.sign(message)
     return signature
 
 def verify(pubKey, message, signature):
-    key = RSA.importKey(pubKey)
-    keySize = key.size() + 1
-    if keySize not in _policy_.keys():
-        return False
-    else:
-        hasher = _policy_[keySize]
-
-    if key.has_private():
-        return False
-    h = hasher.new()
-    h.update(message)
-    verifier = PKCS1_PSS.new(key)
-    if verifier.verify(h, signature):
-        return True
-    else:
+    try:
+        vk = VerifyingKey.from_string(pubKey)
+        hashed = _getHashFunc(len(sk.to_string()))(message).digest()
+        if verifier.verify(hashed, signature):
+            return True
+        else:
+            return False
+    except Exception,e:
         return False
 
 
@@ -80,13 +77,12 @@ ECDSA: public key cryptography for digital signature and encryption
 ===================================================================
 
 SYNOPSIS
-    python ecdsa.py generate <bits>
-    python ecdsa.py examine <key>
+    python ecdsa.py generate <curve name> 
     python ecdsa.py verify <key> <data> <signature>
     python ecdsa.py sign <key> <data>
 
 NOTICE
-    1. <bits> should be one of following values:
+    1. <curve name> should be one of following values:
         %s
        other values will be rejected.
     2. <key>, <data> and <signature> are all HEX-encoded strings.
@@ -98,7 +94,7 @@ RETURN VALUE
     3       the verification failed due to corrupted data or signature.
     127     bad input received and help info is displayed.
 
-    """ % (' '.join([str(i) for i in _policy_.keys()]), )
+    """ % (' '.join([i for i in _policy_.keys()]), )
     cmdDesc = cmdDesc.strip()
 
     try:
