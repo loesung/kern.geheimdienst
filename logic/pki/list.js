@@ -1,3 +1,11 @@
+/*
+ * List all keys that belongs to a given [identityID].
+ *
+ * This searchs all the keys in the database and look their [keyTrustChain].
+ * If the [firstSign] have signed the given [identityID], then it will be
+ * contained in the returning list.
+ */
+
 module.exports = function(dataSource){
     return function(data, callback){
         var identityID = data.get.id;
