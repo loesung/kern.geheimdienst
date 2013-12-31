@@ -100,7 +100,7 @@ RETURN VALUE
     try:
         cmdOperand = sys.argv[1].strip().lower()
         if cmdOperand == 'generate':
-            cmdBits = int(sys.argv[2])
+            cmdCurve = sys.argv[2].strip()
         else:
             cmdKey = sys.argv[2].decode('hex')
             if cmdOperand == 'examine':
@@ -119,7 +119,7 @@ RETURN VALUE
         sys.exit(127)
 
     if cmdOperand == 'generate':
-        genRet = generate(cmdBits)
+        genRet = generate(cmdCurve)
         if genRet:
             pubKey, prvKey = genRet
             print pubKey.encode('base64')
