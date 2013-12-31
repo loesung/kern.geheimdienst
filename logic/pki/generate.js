@@ -29,8 +29,10 @@ function RSASignOnly(bits, dataSource, identityID){
             // construct new key
             function(rawPrivateKey, rawPublicKey, callback){
                 var newKey = {
+                    keyAlgo: enumerator.keyAlgo['RSA' + bits + 'SignOnly'],
                     keyClass: enumerator.keyClass.PRIVATE,
-
+                    keyPrivate: rawPrivateKey.toString('base64'),
+                    keyPublic: rawPublicKey.toString('base64'),
                 };
 
                 callback(null, newKey);
@@ -38,34 +40,59 @@ function RSASignOnly(bits, dataSource, identityID){
 
             // firstSign, self sign.
             function(newKey, callback){
-                var beingSigned = {
+                var publicKey = {
+                    keyAlgo: newKey.keyAlgo,
                     keyClass: enumerator.keyClass.PUBLIC,
+                    keyPublic: newKey.keyPublic,
+                };
+                
+                // from this also derive the key Fingerprint
+                var keyFingerprint = new $.nodejs.buffer.Buffer(
+                    _.object.hash(publicKey),
+                    'hex'
+                );
 
-                }; //actually a public key entry. TODO from this also derive the key ID.
+                var beingSigned = {
+                        identityID: identityID,
+                        keyFingerprint: keyFingerprint.toString('base64'),
+                    }
+                ;
+                var beingSignedHash = new $.nodejs.buffer.Buffer(
+                    _.object.hash(beingSigned),
+                    'hex'
+                );
 
-                var firstSign = false;
-
-                callback(null, newKey, firstSign);
+                rsa.sign(
+                    beingSignedHash,
+                    function(err, signature){
+                        if(null != err) return callback(err);
+                        callback(null, newKey, keyFingerprint, {
+                            signer: keyFingerprint.toString('base64'),
+                            signed: beingSigned,
+                            signature: signature.toString('base64'),
+                        });
+                    }
+                );
             },
 
             // generate key record = (newKey, keyTrustChain)
-            function(keyEntry, firstSign, callback){
-                var keyID = false; //TODO = hash(keyentry)
-
+            function(keyEntry, keyFingerprint, firstSign, callback){
                 var keyRecord = {
                     keyEntry: keyEntry,
                     keyTrustChain: [firstSign],
                 };
 
-                callback(null, keyID, keyRecord);
+                callback(null, keyFingerprint.toString('hex'), keyRecord);
             },
         ];
 
-        $.nodejs.async.waterfall(workflow, function(err, keyID, keyRecord){
-            dataSource.pki(keyID, keyRecord);
-            // TODO update index of corresponding identity.
-            callback(null);
-        });
+        $.nodejs.async.waterfall(
+            workflow,
+            function(err, keyFingerprint, keyRecord){
+                dataSource.pki(keyFingerprint, keyRecord);
+                callback(null, keyRecord);
+            }
+        );
     };
 };
 
