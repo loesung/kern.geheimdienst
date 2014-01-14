@@ -4,16 +4,19 @@ var ecdh = require('../lib/jsbn/__init__.js')($, _);
 
 var curve = 'secp256r1';
 
+curve = 'sm2fp192';
 var alice = new ecdh(curve),
     bob = new ecdh(curve);
-/*
-alice.setPrivateKey('83A2C9C8B96E5AF70BD480B472409A9A327257F1EBB73F5B073354B248668563');
-bob.setPrivateKey('5E35D7D3F3C54DBAC72E61819E730B019A84208CA3A35E4C2E353DFCCB2A3B53');
+
+alice.setPrivateKey('3AC0E717EB61602EFCBB1DE81AA144A272B44BA1F16936AC');
+bob.setPrivateKey('25FBB32EFBEC6ECB1314332A026582DB7BE00C051CF2FA80');
 
 console.log(alice.getPublicKey());
 
 process.exit();
-*/
+
+
+//////
 
 $.nodejs.async.series(
     [
