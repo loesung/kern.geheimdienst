@@ -38,7 +38,7 @@ function encrypt(storage){
             var item = passphrases[i],
                 passphrase, hint;
 
-            if($.types.isObject(item)){
+            if(!$.types.isBuffer(item)){
                 passphrase = item.passphrase;
                 hint = item.hint;
             } else {
@@ -46,7 +46,11 @@ function encrypt(storage){
                 hint = null;
             };
 
-            if(!($.types.isBuffer(passphrase) && $.types.isBuffer(hint)))
+            if(!(
+                    $.types.isBuffer(passphrase) &&
+                    ($.types.isBuffer(hint) || null == hint)
+                )
+            )
                 return callback(Error('Unexpected passphrases.'));
 
             if(passphrase.length < PASSPHRASE_MIN_LENGTH)
@@ -80,22 +84,27 @@ function encrypt(storage){
         // encrypt the encryption key using passphrases
         workflow.push(function(encryptKey, rueckruf){
             var task = [];
-            for(var i=0; i<workPassphrase.length; i++){
+            for(var i=0; i<workPassphrases.length; i++){
                 task.push((function(k, p){
                     return function(callback){
                         _.symcrypt.encryptEncoded(p, k, callback);
                     };
-                })(encryptKey, workPassphrase[i]));
+                })(encryptKey, workPassphrases[i]));
             };
 
             $.nodejs.async.series(task, function(err, result){
                 if(null != err) return rueckruf(err);
                 var hints = [];
                 for(var i in result){
-                    hints.push({
-                        hint: workHints[i],
-                        ciphertext: result[i],
-                    });
+                    if(workHints[i])
+                        hints.push({
+                            hint: workHints[i],
+                            ciphertext: result[i],
+                        });
+                    else
+                        hints.push({
+                            ciphertext: result[i],
+                        });
                 };
                 rueckruf(null, encryptKey, hints);
             });
