@@ -1,21 +1,8 @@
 require('../lib/baum.js');
 require('../lib/_.js');
 
-var der = _.package.armoredPack('ciphertext-with-passphrases', {
-    passphrases: [
-        {
-            hint: '',
-            ciphertext: '0101',
-        },
-        {
-            hint: 'abc',
-            ciphertext: '0202',
-        },
-    ], 
-    ciphertext: '010202',
+var identityIns = _.package.pack('identity', {
+    subject: new $.nodejs.buffer.Buffer('0101', 'hex'),
 });
 
-console.log(der);
-
-var decoded = _.package.parse('ciphertext-with-passphrases', der);
-console.log(decoded);
+console.log(identityIns);

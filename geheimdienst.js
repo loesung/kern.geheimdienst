@@ -19,7 +19,7 @@ $.global.set('storage', _.storage(storagePath));
 var IPCServer = $.net.IPC.server(socketPath);
 console.log('IPC Server created at: ' + socketPath);
 
-IPCServer.on('data', require('./logic/__init__.js'));
+IPCServer.on('data', require('./logic'));
 IPCServer.on('error', function(err){
     try{
         console.log('ERROR! ' + err);
