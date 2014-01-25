@@ -112,7 +112,7 @@ function encrypt(storage){
 
         // encrypt plaintext
         workflow.push(function(encryptKey, hints, callback){
-            _.symcrypt.encryptEncoded(
+            _.symcrypt.encryptEncodedCompressed(
                 encryptKey,
                 plaintext,
                 function(err, ciphertext){
