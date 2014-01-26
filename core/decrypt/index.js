@@ -6,9 +6,7 @@ function decrypt(storage){
     var self = this;
 
     this.examine = require('./examine.js')(storage); 
-
-    this.do = function(){
-    };
+    this.do = require('./do.js')(storage);
 
     return this;
 };
