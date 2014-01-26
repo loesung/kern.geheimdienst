@@ -9,6 +9,9 @@ module.exports = function(storage){
         if(null == overview) return callback(Error('unrecognized-data'));
 
         var dataType = overview[0], data = overview[1];
-        
+        if(!dataType.startsWith('ciphertext'))
+            return callback(Error('not-ciphertext'));
+
+
     };
 };
