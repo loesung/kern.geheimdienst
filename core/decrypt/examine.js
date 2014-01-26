@@ -10,14 +10,21 @@ module.exports = function(storage){
         if(null == overview) return callback(Error('unrecognized-data'));
 
         var dataType = overview[0], data = overview[1];
+        var ret = {
+            'type': dataType,
+            'hint': null,
+        };
         
         switch(dataType){
             case 'ciphertextWithPassphrases':
-                callback(null, data.passphrases);
+                ret.hint = [];
+                for(var i in data.passphrases)
+                    ret.hint.push(data.passphrases[i].hint);
                 break;
             default:
                 callback(Error('non-ciphertext'));
                 break;
         };
+        callback(null, ret);
     };
 };
