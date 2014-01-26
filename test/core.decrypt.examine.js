@@ -3,8 +3,6 @@ require('../lib/_.js');
 
 var core = require('../core')(null);
 
-console.log(core);
-
 $.nodejs.async.waterfall(
     [
         function(callback){

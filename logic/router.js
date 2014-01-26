@@ -44,7 +44,7 @@ function callHandler(handler){
 
 module.exports = function(e){
     return function(callback){
-        console.log(e.request.url);
+        String("Access: " + e.request.url).NOTICE();
 
         var handler = $.global.get('router')(e.request.url);
         if(!handler) return callback(400);

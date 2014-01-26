@@ -35,6 +35,7 @@ module.exports = function(e){
 
         // check if storage is loaded
         if($.global.get('storage').loaded()){
+            String("Database report loaded.").NOTICE();
             if(!$.global.get('storage').checkPassphrase(password))
                 failAuth(401);
             else
