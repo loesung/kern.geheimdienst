@@ -22,7 +22,6 @@ module.exports = function(a, b, c, d){
     var workPassphrases = [], workHints = [];
 
     if(!$.types.isArray(passphrases)) passphrases = [passphrases,];
-    
     for(var i in passphrases){
         var item = passphrases[i],
             passphrase, hint;

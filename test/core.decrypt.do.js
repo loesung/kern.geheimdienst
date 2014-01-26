@@ -1,9 +1,8 @@
 require('../lib/baum.js');
 require('../lib/_.js');
 
-var core = require('../core')(null);
-
-console.log(core);
+var core = require('../core')(null),
+    ciphertextWithPassphrases;
 
 $.nodejs.async.waterfall(
     [
@@ -22,8 +21,18 @@ $.nodejs.async.waterfall(
             );
         },
 
-        function(ciphertextWithPassphrases, callback){
+        function(c, callback){
+            console.log('ciphertext obtained.');
+            ciphertextWithPassphrases = c;
             core.decrypt.examine(ciphertextWithPassphrases, callback);
+        },
+
+        function(r, callback){
+            core.decrypt.do(
+                new $.nodejs.buffer.Buffer('Be sure to use a passphrase that is very very long.'),
+                ciphertextWithPassphrases,
+                callback
+            );
         },
     ],
 

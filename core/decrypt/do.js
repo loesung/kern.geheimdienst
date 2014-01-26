@@ -1,15 +1,12 @@
-function decryptWithPassphrases(ciphertext, key, callback){
+function decryptWithPassphrases(key, ciphertext, callback){
     var answer = key, examineTargets = ciphertext.passphrases, trys=[];
 
     try{
         // to find an answer
-        if($.types.isObject(answer)){
+        if(!$.types.isBuffer(answer)){
             answer = key.passphrase;
             examineTargets = [examineTargets[index], ];
         };
-
-        if(!$.types.isBuffer(answer))
-            answer = new $.nodejs.buffer.Buffer(answer);
 
         for(var i in examineTargets){
             var examineTarget = examineTargets[i],
@@ -60,7 +57,11 @@ function decryptWithPassphrases(ciphertext, key, callback){
 
     // decrypt
     workflow.push(function(mainKey, callback){
-        _.symcrypt.decryptEncodedCompressed(mainKey, ciphertext, callback);
+        _.symcrypt.decryptEncodedCompressed(
+            mainKey, 
+            ciphertext.ciphertext,
+            callback
+        );
     });
 
 
@@ -78,8 +79,8 @@ module.exports = function(storage){
      * the ciphertext will be automatically recognized. the key should be
      * provided according to the answer provided by `core.decrypt.examine`.
      */
-    return function(ciphertext, key, callback){
-        var overview = _.package.parse(message);
+    return function(key, ciphertext, callback){
+        var overview = _.package.parse(ciphertext);
         if(null == overview) return callback(Error('unrecognized-data'));
 
         var dataType = overview[0], data = overview[1];
@@ -88,7 +89,7 @@ module.exports = function(storage){
 
         switch(dataType){
             case 'ciphertextWithPassphrases':
-                decryptWithPassphrases(data, key, callback);
+                decryptWithPassphrases(key, data, callback);
                 break;
             default:
                 return callback(Error('unrecognized-data'));
