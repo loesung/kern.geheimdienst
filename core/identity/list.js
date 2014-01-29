@@ -13,7 +13,7 @@ module.exports = function(storage, hints, callback){
                 hint.length % 2 == 0
             )
                 searchKey.push(hint.toLowerCase());
-            searchSubject.push(hint);
+            searchSubject.push(hint.toLowerCase());
         };
     };
 
@@ -24,9 +24,31 @@ module.exports = function(storage, hints, callback){
         try{
             var identity = _.package.parse(allIdentities[key]);
             if(identity[0] != 'identity') continue;
-            cachedIdentities[key] = identity[1].content.subject.toString();
+            cachedIdentities[key] = 
+                identity[1].content.subject.toString().toLowerCase();
         } catch(e){
             continue;
         };
     };
+    delete allIdentities;
+
+
+    for(var key in cachedIdentities){
+        var keyFound = false;        
+        for(var i in searchKey){
+            if(key.startsWith(searchKey[i])){
+                keyFound = true;
+                match.push(cachedIdentities[key]);
+                break;
+            };
+        };
+        if(keyFound) delete searchKey[i];
+
+        for(var i in searchSubject){
+            if(cachedIdentities[key].toLowerCase().indexOf(searchSubject[i])
+                match.push(cachedIdentities[key]);
+        };
+    };
+
+    callback(null, match);
 };
