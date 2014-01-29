@@ -1,3 +1,5 @@
+var add = require('./add.js');
+
 module.exports = function(storage){
     return new identity(storage);
 };
@@ -13,7 +15,10 @@ function identity(storage){
     };
 
     this.add = function(content, callback){
-        require('./add.js')(storage, content.subject, callback);
+        if($.types.isBuffer(content) || $.types.isString(content))
+            add.fromPacked(storage, content, callback);
+        else
+            add.fromObject(storage, content, callback);
     };
 
     return this;
