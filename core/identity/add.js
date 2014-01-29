@@ -37,7 +37,13 @@ function add(storage, subject, callback){
         id: identityID,
     };
 
+    var strIdentityID = identityID.toString('hex');
+    var strIdentity = _.package.pack('identity', identity).toString();
 
+    if(storage.table('identity')(strIdentityID))
+        return callback(Error('identity-already-exists'));
 
-    callback(null, _.package.parse(_.package.pack('identity', identity)));
+    storage.table('identity')(identityID.toString('hex'), strIdentity);
+
+    callback(null);
 };
