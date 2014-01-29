@@ -15,7 +15,7 @@ $.nodejs.async.waterfall([
     function(callback){
         core = require('../core')(storage);
         core.identity.add({
-            subject: 'test', 
+            subject: 'testSubject', 
         }, callback);
     },
 
