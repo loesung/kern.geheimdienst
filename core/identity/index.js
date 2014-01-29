@@ -12,5 +12,9 @@ function identity(storage){
         require('./list.js')(storage, hints, callback);
     };
 
+    this.add = function(content, callback){
+        require('./add.js')(storage, content.subject, callback);
+    };
+
     return this;
 };
