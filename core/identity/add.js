@@ -27,8 +27,12 @@ function add(storage, subject, callback){
         subject: subject,
     };
 
-    var strIdentityContent = 
-        _.package._pack('identityContent', identityContent);
+    try{
+        var strIdentityContent = 
+            _.package._pack('identityContent', identityContent);
+    } catch(e){
+        return callback(Error('invalid-content'));
+    };
 
     var identityID = _.digest.whirlpool(strIdentityContent).slice(0, 32);
 
@@ -43,7 +47,7 @@ function add(storage, subject, callback){
     if(storage.table('identity')(strIdentityID))
         return callback(Error('identity-already-exists'));
 
-    storage.table('identity')(identityID.toString('hex'), strIdentity);
+    storage.table('identity')(strIdentityID, strIdentity);
 
     callback(null);
 };
