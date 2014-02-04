@@ -32,7 +32,6 @@ module.exports = function(storage, hints, callback){
     };
     delete allIdentities;
 
-
     for(var key in cachedIdentities){
         var keyFound = false;        
         for(var i in searchKey){
@@ -45,7 +44,10 @@ module.exports = function(storage, hints, callback){
         if(keyFound) delete searchKey[i];
 
         for(var i in searchSubject){
-            if(cachedIdentities[key].toLowerCase().indexOf(searchSubject[i])
+            if(
+                cachedIdentities[key].toLowerCase().indexOf(searchSubject[i])
+                >= 0
+            )
                 match.push(cachedIdentities[key]);
         };
     };

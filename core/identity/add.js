@@ -42,7 +42,7 @@ function add(storage, subject, callback){
     };
 
     var strIdentityID = identityID.toString('hex');
-    var strIdentity = _.package.pack('identity', identity).toString();
+    var strIdentity = _.package.armoredPack('identity', identity).toString();
 
     if(storage.table('identity')(strIdentityID))
         return callback(Error('identity-already-exists'));
