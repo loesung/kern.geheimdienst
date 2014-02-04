@@ -15,6 +15,11 @@ $.nodejs.async.series([
         core.identity.list('test', callback);
     },
 
+    function(callback){
+        core = require('../core')(storage);
+        core.identity.list(null, callback);
+    },
+
 ], function(err, result){
-    console.log(result);    
+    console.log(result);
 });
