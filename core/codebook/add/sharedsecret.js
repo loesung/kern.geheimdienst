@@ -3,16 +3,22 @@ MIN_SHAREDSECRET_LENGTH = 32;
 
 module.exports = function(storage){
     return function(memberIDs, sharedsecret, options, callback){
+        if(!callback){
+            // options is not given, shift the parameter
+            callback = options;
+            options = {};
+        };
         
         // regulate member IDs
         var members = [];
+        if(!$.types.isArray(memberIDs))
+            memberIDs = [memberIDs,];
         for(var i in memberIDs){
             var memberID = memberIDs[i];
             if($.types.isBuffer(memberID))
                 memberID = memberID.toString('hex');
             if($.types.isString(memberID)){
                 memberID = memberID.toLowerCase();
-                if(!/^[0-9a-f]$/.test(memberID)) continue;
                 if(!storage.table('identity')(memberID))
                     return callback(Error('member-not-recognized'));
                 members.push(memberID);
@@ -62,6 +68,12 @@ module.exports = function(storage){
         // generate entry
         workflow.push(function(derivedKey, callback){
             var id = _.digest.whirlpool(derivedKey);
+
+            // check if duplicated
+            if(storage.table('codebook')(id)){
+                return callback(Error('codebook-already-exists'));
+            };
+
             var entry = {
                 members: members,
                 credential: derivedKey,
@@ -69,9 +81,19 @@ module.exports = function(storage){
                 validTo: validTo,
                 id: id,
             };
+
+            callback(null, _.package.armoredPack('codebook', entry));
         });
         
         // save to storage
+        
+
+        $.nodejs.async.waterfall(workflow, function(err, result){
+            if(null != err){    
+                return callback(err);
+            };
+            callback(null, result);
+        });
         
     };
 };
