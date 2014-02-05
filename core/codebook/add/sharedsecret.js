@@ -85,20 +85,12 @@ module.exports = function(storage){
 
             var strCodebook = _.package.armoredPack('codebook', entry);
 
+            // save to storage
             storage.table('codebook')(strID, strCodebook);
 
             callback(null, strCodebook);
         });
-        
-        // save to storage
-        
 
-        $.nodejs.async.waterfall(workflow, function(err, result){
-            if(null != err){    
-                return callback(err);
-            };
-            callback(null, result);
-        });
-        
+        $.nodejs.async.waterfall(workflow, callback);
     };
 };
