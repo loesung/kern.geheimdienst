@@ -20,8 +20,6 @@ $.nodejs.async.waterfall([
     function(result, callback){
         for(var i in result)
             break;
-
-        console.log(i);
         
         core.codebook.add.sharedsecret(
             i,

@@ -54,11 +54,13 @@ module.exports = function(storage){
 
         var workflow = [];
 
-        // derive credential
+        // Derive credential, note that member list is also taken into
+        // consideration.
         workflow.push(function(callback){
+            var salt = $.nodejs.buffer.Buffer.concat(members);
             $.nodejs.crypto.pbkdf2(
                 sharedsecret,
-                'CODEBOOK-DERIVED-BY-SHAREDSECRET', // cannot be negotiated.
+                salt,
                 1024,
                 1024,
                 callback
