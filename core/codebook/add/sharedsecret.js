@@ -62,7 +62,7 @@ module.exports = function(storage){
                 sharedsecret,
                 salt,
                 1024,
-                1024,
+                256,
                 callback
             );
         });
