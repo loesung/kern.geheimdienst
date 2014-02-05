@@ -18,7 +18,8 @@ module.exports = function(a, b, c, d){
         var useropt = c,
             callback = d;
 
-    //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+
     var workPassphrases = [], workHints = [];
 
     if(!$.types.isArray(passphrases)) passphrases = [passphrases,];
@@ -59,7 +60,7 @@ module.exports = function(a, b, c, d){
     )
         options.encryptKeyLength = Math.ceil(useropt.encryptKeyLength);
 
-    //////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
 
     var workflow = [];
     
