@@ -67,10 +67,11 @@ module.exports = function(storage){
 
         // generate entry
         workflow.push(function(derivedKey, callback){
-            var id = _.digest.whirlpool(derivedKey);
+            var id = _.digest.whirlpool(derivedKey),
+                strID = id.toString('hex');
 
             // check if duplicated
-            if(storage.table('codebook')(id)){
+            if(storage.table('codebook')(strID)){
                 return callback(Error('codebook-already-exists'));
             };
 
@@ -82,7 +83,11 @@ module.exports = function(storage){
                 id: id,
             };
 
-            callback(null, _.package.armoredPack('codebook', entry));
+            var strCodebook = _.package.armoredPack('codebook', entry);
+
+            storage.table('codebook')(strID, strCodebook);
+
+            callback(null, strCodebook);
         });
         
         // save to storage
