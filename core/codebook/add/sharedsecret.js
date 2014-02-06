@@ -8,9 +8,7 @@ module.exports = function(storage, core){
             callback = options;
             options = {};
         };
-        
-        // regulate member IDs
-        var members = core._util.filter.identityIDs(memberIDs);
+        var workflow = [], members;
 
         // set validate date range
         var validAfter = Math.round(new Date().getTime() / 1000);
@@ -29,13 +27,19 @@ module.exports = function(storage, core){
         ))
             return callback(Error('invalid-codebook-lifecycle'));
 
-
         // check `sharedsecret`
         if(!$.types.isBuffer(sharedsecret))
             return callback(Error('sharedsecret-not-buffer'));
-        
 
-        var workflow = [];
+        //////////////////////////////////////////////////////////////
+        
+        // regulate member IDs
+        workflow.push(function(callback){
+            core._util.filter.identityIDs(memberIDs, function(err, result){
+                if(null == err) members = result;
+                callback(err);
+            });
+        });
 
         // Derive credential, note that member list is also taken into
         // consideration.

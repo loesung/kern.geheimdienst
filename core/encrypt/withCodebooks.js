@@ -13,7 +13,7 @@ function isSubset(testSubset, mainSet){
     return true;
 };
 
-module.exports = function(storage){
+module.exports = function(storage, core){
     return function(a, b, c, d){
         /*
          * (identityIDs, plaintext, [options], callback)
@@ -29,10 +29,12 @@ module.exports = function(storage){
         else
             var useropt = c,
                 callback = d;
-        };
 
         //////////////////////////////////////////////////////////////
 
         /* filter identity IDs */
+        identityIDs = core._util.filter.identityIDs(identityIDs);
+
+
     };
 };

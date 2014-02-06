@@ -1,5 +1,5 @@
 module.exports = function(storage){
-    return function(memberIDs){
+    return function(memberIDs, callback){
         var members = [];
         if(!$.types.isArray(memberIDs))
             memberIDs = [memberIDs,];
@@ -17,6 +17,7 @@ module.exports = function(storage){
         members.sort();
         for(var i in members)
             members[i] = new $.nodejs.buffer.Buffer(members[i], 'hex');
-        return members;
+
+        callback(null, members);
     };
 };
