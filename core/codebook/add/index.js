@@ -11,14 +11,14 @@ CODEBOOK_LIFE_MAX = 315360000;
 // Min. codebook life(seconds). Default 3600 equals to 1 hour. 
 CODEBOOK_LIFE_MIN = 3600;
 
-function add(storage){
+function add(storage, core){
     var self = this;
 
-    this.sharedsecret = require('./sharedsecret.js')(storage);
+    this.sharedsecret = require('./sharedsecret.js')(storage, core);
 
     return this;
 };
 
-module.exports = function(s){
-    return new add(s);
+module.exports = function(s, c){
+    return new add(s, c);
 };

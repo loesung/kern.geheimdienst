@@ -1,7 +1,7 @@
 // Min. length of a sharedsecret.
 MIN_SHAREDSECRET_LENGTH = 32;
 
-module.exports = function(storage){
+module.exports = function(storage, core){
     return function(memberIDs, sharedsecret, options, callback){
         if(!callback){
             // options is not given, shift the parameter
@@ -10,24 +10,7 @@ module.exports = function(storage){
         };
         
         // regulate member IDs
-        var members = [];
-        if(!$.types.isArray(memberIDs))
-            memberIDs = [memberIDs,];
-        for(var i in memberIDs){
-            var memberID = memberIDs[i];
-            if($.types.isBuffer(memberID))
-                memberID = memberID.toString('hex');
-            if($.types.isString(memberID)){
-                memberID = memberID.toLowerCase();
-                if(!storage.table('identity')(memberID))
-                    return callback(Error('member-not-recognized'));
-                members.push(memberID);
-            };
-        };
-        members.sort();
-        for(var i in members)
-            members[i] = new $.nodejs.buffer.Buffer(members[i], 'hex');
-
+        var members = core._util.filter.identityIDs(memberIDs);
 
         // set validate date range
         var validAfter = Math.round(new Date().getTime() / 1000);

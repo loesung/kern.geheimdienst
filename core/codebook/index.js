@@ -1,13 +1,13 @@
-function codebook(storage){
+function codebook(storage, core){
     var self = this;
 
     this.list = null;
 
-    this.add = require('./add')(storage);
+    this.add = require('./add')(storage, core);
 
     return this;
 };
 
-module.exports = function(s){
-    return new codebook(s);
+module.exports = function(s, c){
+    return new codebook(s, c);
 };
