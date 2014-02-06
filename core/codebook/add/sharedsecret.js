@@ -56,7 +56,20 @@ module.exports = function(storage, core){
 
         // generate entry
         workflow.push(function(derivedKey, callback){
-            var id = _.digest.whirlpool(derivedKey),
+            var content = {
+                members: members,
+                credential: derivedKey,
+                validAfter: validAfter,
+                validTo: validTo,
+            };
+
+            var strContent = _.package._pack('codebookContent', content);
+
+            // here we use `sha-1` to represent a codebook. not too long for
+            // transmission. we do not need to prevent codebook forging, and
+            // instead, using a short digest will largely reduce the
+            // entropy in our representation.
+            var id = _.digest.sha1(strContent),
                 strID = id.toString('hex');
 
             // check if duplicated
@@ -64,15 +77,11 @@ module.exports = function(storage, core){
                 return callback(Error('codebook-already-exists'));
             };
 
-            var entry = {
-                members: members,
-                credential: derivedKey,
-                validAfter: validAfter,
-                validTo: validTo,
+            var codebook = {
                 id: id,
+                content: content,
             };
-
-            var strCodebook = _.package.armoredPack('codebook', entry);
+            var strCodebook = _.package.armoredPack('codebook', codebook);
 
             // save to storage
             storage.table('codebook')(strID, strCodebook);
