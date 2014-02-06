@@ -43,5 +43,16 @@ module.exports = function(storage, core){
         });
 
 
+        /* 
+         * get all possible codebooks
+         *
+         * that is to say, the members in each codebook is a subset of given
+         * identityIDs.
+         */
+        workflow.push(function(callback){
+        });
+
+        
+        $.nodejs.async.waterfall(workflow, callback);
     };
 };
