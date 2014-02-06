@@ -20,6 +20,5 @@ core.encrypt.withPassphrases(
 
     function(err, result){
         console.log(result);
-        console.log(JSON.stringify(_.package.parse(result)));
     }
 );

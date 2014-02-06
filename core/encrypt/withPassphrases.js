@@ -116,7 +116,7 @@ module.exports = function(a, b, c, d){
 
     $.nodejs.async.waterfall(workflow, function(err, result){
         if(null != err) return callback(err);
-        var template = 'ciphertextWithPassphrases';
+        var template = 'ciphertext';
         if(options.armor)
             callback(null, _.package.armoredPack(template, result));
         else

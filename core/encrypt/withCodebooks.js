@@ -1,28 +1,13 @@
-function isSubset(testSubset, mainSet){
-    var inMainset;
-    for(var i in testSubset){
-        inMainSet = false;
-        for(var j in mainSet){
-            if(testSubset[i] == mainSet[j]){
-                inMainSet = true;
-                break;
-            };
-        };
-        if(!inMainSet) return false;
-    };
-    return true;
-};
-
 module.exports = function(storage, core){
     return function(a, b, c, d){
         /*
-         * (identityIDs, plaintext, [options], callback)
+         * (codebookIDs, plaintext, [options], callback)
          *
          * options:
          *     encryptKeyLength: >= 32
          */
 
-        var identityIDs = a, plaintext = b;
+        var codebookIDs = a, plaintext = b;
         if(d == undefined)
             var useropt = {},
                 callback = c;
@@ -30,25 +15,36 @@ module.exports = function(storage, core){
             var useropt = c,
                 callback = d;
 
+        var options = {
+            'encryptKeyLength': DEFAULT_ENCRYPT_KEY_LENGTH,
+            'armor': false || useropt.armor,
+        };
+        if(
+            useropt.encryptKeyLength &&
+            $.types.isNumber(useropt.encryptKeyLength) &&
+            useropt.encryptKeyLength >= 32
+        )
+            options.encryptKeyLength = Math.ceil(useropt.encryptKeyLength);
+
         //////////////////////////////////////////////////////////////
         
         var workflow = [];
 
-        /* filter identity IDs */
+        /* filter codebook IDs */
         workflow.push(function(callback){
-            core._util.filter.identityIDs(identityIDs, function(err, result){
-                if(null == err) identityIDs = result;
+            core._util.filter.codebookIDs(codebookIDs, function(err, result){
+                if(null == err) codebookIDs = result;
                 callback(err);
             });
         });
 
+        // get random encryption key
+        workflow.push(function(callback){
+            // 128 bytes = 1024 bits
+            $.security.random.bytes(options.encryptKeyLength, callback);
+        });
 
-        /* 
-         * get all possible codebooks
-         *
-         * that is to say, the members in each codebook is a subset of given
-         * identityIDs.
-         */
+        /* get codebook and encrypt Key */
         workflow.push(function(callback){
         });
 
