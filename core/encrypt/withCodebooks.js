@@ -31,9 +31,16 @@ module.exports = function(storage, core){
                 callback = d;
 
         //////////////////////////////////////////////////////////////
+        
+        var workflow = [];
 
         /* filter identity IDs */
-        identityIDs = core._util.filter.identityIDs(identityIDs);
+        workflow.push(function(callback){
+            core._util.filter.identityIDs(identityIDs, function(err, result){
+                if(null == err) identityIDs = result;
+                callback(err);
+            });
+        });
 
 
     };
