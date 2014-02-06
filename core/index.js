@@ -1,10 +1,12 @@
 function core(storage){
     var self = this;
 
-    this.encrypt = require('./encrypt')(storage);
-    this.decrypt = require('./decrypt')(storage);
-    this.identity = require('./identity')(storage);
-    this.codebook = require('./codebook')(storage);
+    this._util = require('./_util')(storage);
+
+    this.encrypt = require('./encrypt')(storage, this);
+    this.decrypt = require('./decrypt')(storage, this);
+    this.identity = require('./identity')(storage, this);
+    this.codebook = require('./codebook')(storage, this);
 
     return this;
 };
