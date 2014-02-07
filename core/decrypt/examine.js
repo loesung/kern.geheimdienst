@@ -14,17 +14,14 @@ module.exports = function(storage){
             'type': dataType,
             'hint': null,
         };
-        
-        switch(dataType){
-            case 'ciphertextWithPassphrases':
-                ret.hint = [];
-                for(var i in data.passphrases)
-                    ret.hint.push(data.passphrases[i].hint);
-                break;
-            default:
-                callback(Error('non-ciphertext'));
-                break;
-        };
+
+        if('ciphertext' != dataType)
+            return callback(Error('non-ciphertext'));
+
+        ret.hint = [];
+        for(var i in data.passphrases)
+            ret.hint.push(data.passphrases[i].hint);
+
         callback(null, ret);
     };
 };
