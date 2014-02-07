@@ -18,17 +18,6 @@ module.exports = function(storage, core){
             var useropt = c,
                 callback = d;
 
-        var options = {
-            'encryptKeyLength': DEFAULT_ENCRYPT_KEY_LENGTH,
-            'armor': false || useropt.armor,
-        };
-        if(
-            useropt.encryptKeyLength &&
-            $.types.isNumber(useropt.encryptKeyLength) &&
-            useropt.encryptKeyLength >= 32
-        )
-            options.encryptKeyLength = Math.ceil(useropt.encryptKeyLength);
-
         //////////////////////////////////////////////////////////////
         
         var workflow = [];
