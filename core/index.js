@@ -1,3 +1,5 @@
+require('./config.js');
+
 function core(storage){
     var self = this;
 

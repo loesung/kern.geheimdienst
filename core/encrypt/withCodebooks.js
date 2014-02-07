@@ -1,3 +1,6 @@
+// VERIFY CODEBOOK ID BEFORE USING IT.
+VERIFY_CODEBOOK_INTEGRITY_BEFORE_USE = true;
+
 module.exports = function(storage, core){
     return function(a, b, c, d){
         /*
@@ -38,15 +41,7 @@ module.exports = function(storage, core){
             });
         });
 
-        // get random encryption key
-        workflow.push(function(callback){
-            // 128 bytes = 1024 bits
-            $.security.random.bytes(options.encryptKeyLength, callback);
-        });
-
-        /* get codebook and encrypt Key */
-        workflow.push(function(callback){
-        });
+        /* read in all codebook IDs */
 
         
         $.nodejs.async.waterfall(workflow, callback);

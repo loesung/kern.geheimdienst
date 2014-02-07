@@ -1,6 +1,3 @@
-// Min. length of a sharedsecret.
-MIN_SHAREDSECRET_LENGTH = 32;
-
 module.exports = function(storage, core){
     return function(memberIDs, sharedsecret, options, callback){
         if(!callback){
