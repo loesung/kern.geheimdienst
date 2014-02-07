@@ -13,11 +13,17 @@ PASSPHRASE_MIN_LENGTH = 20;
 
 //////////////////////////////////////////////////////////////////////////////
 
+var _encryptor = require('./_encryptor.js');
+
 function encrypt(storage, core){
     var self = this;
 
-    this.withPassphrases = require('./withPassphrases.js');
-    this.withCodebooks = require('./withCodebooks.js')(storage, core);
+    var encryptor = _encryptor(storage, core);
+
+    this.withPassphrases = 
+        require('./withPassphrases.js')(storage, core, encryptor);
+    this.withCodebooks = 
+        require('./withCodebooks.js')(storage, core, encryptor);
 
     return this;
 };
