@@ -22,6 +22,13 @@ module.exports = function(storage){
             passphrases: [],
             codebooks: [],
         };
+
+        for(var i in data.codebooks){
+            var strCodebookID = data.codebooks[i].id.toString('hex');
+            if(storage.table('codebook')(strCodebookID))
+                ret.hint.codebooks.push(strCodebookID);
+        };
+
         for(var i in data.passphrases)
             ret.hint.passphrases.push(data.passphrases[i].hint);
 
