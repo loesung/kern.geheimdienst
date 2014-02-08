@@ -5,6 +5,8 @@ function core(storage){
 
     this._util = require('./_util')(storage);
 
+    this.system = require('./system')(storage);
+
     this.encrypt = require('./encrypt')(storage, this);
     this.decrypt = require('./decrypt')(storage, this);
     this.identity = require('./identity')(storage, this);

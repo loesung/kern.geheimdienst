@@ -32,7 +32,6 @@ module.exports = function(storage, hints, callback){
             continue;
         };
     };
-    delete allIdentities;
 
     if(listAll) return callback(null, cachedIdentities);
 
@@ -57,7 +56,6 @@ module.exports = function(storage, hints, callback){
                 match[key] = cachedIdentities[key];
         };
     };
-    delete cachedIdentities;
 
     callback(null, match);
 };

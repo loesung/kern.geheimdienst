@@ -30,7 +30,6 @@ module.exports = function(storage, hints, callback){
             continue;
         };
     };
-    delete allCodebooks;
 
     if(listAll) return callback(null, cachedCodebooks);
 
@@ -56,7 +55,6 @@ module.exports = function(storage, hints, callback){
             };
         };
     };
-    delete cachedCodebooks;
 
     callback(null, match);
 };
