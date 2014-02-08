@@ -42,6 +42,10 @@ CODEBOOK_LIFE_MIN = 3600;
 // Min. length of a sharedsecret.
 MIN_SHAREDSECRET_LENGTH = 32;
 
+// Codebook ID hash algorithm. Be cautious to change, otherwise your settings
+// may be conflict to everyone else.
+CODEBOOK_ID_HASH_ALGORITHM = 'sha1';
+
 // Always verify codebook integrity(i.e. checking codebook ID matches codebook
 // content) before use.
 ALWAYS_VERIFY_CODEBOOK_INTEGRITY = true;

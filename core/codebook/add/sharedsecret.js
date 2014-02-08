@@ -66,7 +66,7 @@ module.exports = function(storage, core){
             // transmission. we do not need to prevent codebook forging, and
             // instead, using a short digest will largely reduce the
             // entropy in our representation.
-            var id = _.digest.sha1(strContent),
+            var id = _.digest[CODEBOOK_ID_HASH_ALGORITHM](strContent),
                 strID = id.toString('hex');
 
             // check if duplicated
