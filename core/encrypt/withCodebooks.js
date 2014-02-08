@@ -30,7 +30,15 @@ module.exports = function(storage, core){
             });
         });
 
-        /* read in all codebook IDs */
+        /* read in all codebooks */
+        workflow.push(function(callback){
+            for(var i in codebookIDs){
+                var bufCodebookID = codebookIDs[i],
+                    strCodebookID = bufCodebookID.toString('hex');
+                var codebook = storage.table('codebook')(strCodebookID);
+
+            };
+        });
 
         
         $.nodejs.async.waterfall(workflow, callback);

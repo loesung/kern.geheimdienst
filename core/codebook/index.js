@@ -1,7 +1,9 @@
 function codebook(storage, core){
     var self = this;
 
-    this.list = null;
+    this.list = function(hints, callback){
+        require('./list.js')(storage, hints, callback);
+    };
 
     this.add = require('./add')(storage, core);
 
