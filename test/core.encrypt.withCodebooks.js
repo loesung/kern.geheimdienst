@@ -1,20 +1,19 @@
 require('../lib/baum.js');
 require('../lib/_.js');
 
-var storage = _.storage('../testStorage');
-var core = require('../core')(null);
+var storage = _.storage('../testStorage'), core;
 
 
 $.nodejs.async.waterfall([
 
     function(callback){
         storage.load('abc', true, function(){
+            core = require('../core')(storage);
             callback(null);
         });
     },
 
     function(callback){
-        core = require('../core')(storage);
         core.codebook.list(null, callback);
     },
 
@@ -40,6 +39,4 @@ $.nodejs.async.waterfall([
 
 ], function(err, result){
     console.log(result);
-
-    console.log(JSON.stringify(_.package.parse(result)));
 });

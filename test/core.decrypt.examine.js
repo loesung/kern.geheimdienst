@@ -1,10 +1,45 @@
 require('../lib/baum.js');
 require('../lib/_.js');
 
-var core = require('../core')(null);
+var storage = _.storage('../testStorage'), core;
+
+var ciphertext1, ciphertext2;
 
 $.nodejs.async.waterfall(
     [
+        function(callback){
+            storage.load('abc', true, function(){
+                core = require('../core')(storage);
+                callback(null);
+            });
+        },
+
+        /* ciphertext from codebooks */
+        function(callback){
+            core.codebook.list(null, callback);
+        },
+
+        function(result, callback){
+            for(var i in result)
+                break;
+            var codebookIDs = Object.keys(result).slice(0, 2);
+            core.encrypt.withCodebooks(
+                codebookIDs,
+                new $.nodejs.buffer.Buffer('abcdefg', 'ascii'),
+                {
+                    armor: true,
+                },
+                callback
+            );
+        },
+
+        function(result, callback){
+            ciphertext1 = result;
+            callback(null);
+        },
+        
+
+        /* ciphertext from passphrases */
         function(callback){
             core.encrypt.withPassphrases(
                 [
@@ -20,13 +55,33 @@ $.nodejs.async.waterfall(
             );
         },
 
-        function(ciphertextWithPassphrases, callback){
-            core.decrypt.examine(ciphertextWithPassphrases, callback);
+        function(ciphertext, callback){
+            ciphertext2 = ciphertext;
+            callback(null);
+        },
+
+
+
+        /* test */
+        function(callback){
+            core.decrypt.examine(ciphertext1, function(err, result){
+                console.log(err);
+                console.log(result);
+                console.log('******************');
+                callback(err);
+            });
+        },
+
+        function(callback){
+            core.decrypt.examine(ciphertext2, function(err, result){
+                console.log(err);
+                console.log(result);
+                console.log('******************');
+                callback(err);
+            });
         },
     ],
 
     function(err, result){
-        console.log(err);
-        console.log(result);
     }
 );

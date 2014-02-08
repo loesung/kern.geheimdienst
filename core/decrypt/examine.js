@@ -18,9 +18,12 @@ module.exports = function(storage){
         if('ciphertext' != dataType)
             return callback(Error('non-ciphertext'));
 
-        ret.hint = [];
+        ret.hint = {
+            passphrases: [],
+            codebooks: [],
+        };
         for(var i in data.passphrases)
-            ret.hint.push(data.passphrases[i].hint);
+            ret.hint.passphrases.push(data.passphrases[i].hint);
 
         callback(null, ret);
     };
