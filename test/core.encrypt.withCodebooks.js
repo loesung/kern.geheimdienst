@@ -29,12 +29,17 @@ $.nodejs.async.waterfall([
             
             new $.nodejs.buffer.Buffer('abcdefg', 'ascii'),
 
+            {
+                armor: true,
+            },
+
             callback
         );
     },
 
 
 ], function(err, result){
-    console.log(err);
     console.log(result);
+
+    console.log(JSON.stringify(_.package.parse(result)));
 });

@@ -1,7 +1,7 @@
 // VERIFY CODEBOOK ID BEFORE USING IT.
 VERIFY_CODEBOOK_INTEGRITY_BEFORE_USE = true;
 
-module.exports = function(storage, core){
+module.exports = function(storage, core, ciphertextEncryptor){
     return function(a, b, c, d){
         /*
          * (codebookIDs, plaintext, [options], callback)
@@ -31,8 +31,8 @@ module.exports = function(storage, core){
         });
 
         /* read in all codebooks */
-        var selectedCodebooks;
         workflow.push(function(callback){
+            var selectedCodebooks = [];
             for(var i in codebookIDs){
                 var bufCodebookID = codebookIDs[i],
                     strCodebookID = bufCodebookID.toString('hex');
@@ -43,13 +43,15 @@ module.exports = function(storage, core){
                     );
                     if(codebookLoaded[0] != 'codebook')
                         throw Error();
+
+                    var codebook = codebookLoaded[1];
+                    if(codebook.id.toString('hex') != strCodebookID)
+                        throw Error();
                 } catch(e){
                     // delete buged item, this shouldn't happen.
                     storage.table('codebook')(strCodebookID, null);
-                    return callback(Error('fatal-non-codebook-in-database'));
+                    return callback(Error('codebook-entry-bug-in-database'));
                 };
-
-                var codebook = codebookLoaded[1];
 
                 // Verify codebook integrity, i.e. verify codebook id, which
                 // is the hash of serialized codebook content.
@@ -62,14 +64,67 @@ module.exports = function(storage, core){
                         );
 
                     var expectedID = 
-                        _.digest[CODEBOOK_ID_HASH_ALGORITHM](strContent);
+                        _.digest[CODEBOOK_ID_HASH_ALGORITHM](
+                            strCodebookContent
+                        );
 
                     if(expectedID.toString() != codebook.id.toString())
                         return callback(Error('codebook-corrupted'));
                 };
 
-
+                // this codebook is now ready
+                selectedCodebooks.push({
+                    id: codebook.id,
+                    credential: codebook.content.credential,
+                });
             };
+
+            callback(null, selectedCodebooks);
+        });
+
+        /* call ciphertext generator */
+        workflow.push(function(selectedCodebooks, callback){
+            var mainEncryptKeyEncryptor = (function(codebooks){
+                return function (mainEncryptKey, rueckruf){
+                    var hints = [];
+
+                    // construct codebook encryptors to encrypt the
+                    // main encrypt key.
+                    for(var i in codebooks){
+                        hints.push((function(id, credential){
+                            return function(callback){
+                                _.symcrypt.encryptEncoded(
+                                    credential,
+                                    mainEncryptKey,
+                                    function(err, ciphertext){
+                                        callback(
+                                            null,
+                                            {
+                                                id: id,
+                                                ciphertext: ciphertext,
+                                            }
+                                        );
+                                    }
+                                );
+                            };
+                        })(codebooks[i].id, codebooks[i].credential));
+                    };
+
+                    // run the encryptors
+                    $.nodejs.async.series(hints, rueckruf);
+                };
+            })(selectedCodebooks);
+            
+            selectedCodebooks = null;
+            ciphertextEncryptor(
+                false,
+                mainEncryptKeyEncryptor,
+                false, 
+
+                plaintext,
+                useropt,
+                callback
+            );
         });
 
         
