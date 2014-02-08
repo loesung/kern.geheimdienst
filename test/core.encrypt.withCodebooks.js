@@ -22,7 +22,15 @@ $.nodejs.async.waterfall([
         for(var i in result)
             break;
 
-        console.log('hay', result);
+        var codebookIDs = Object.keys(result).slice(0, 2);
+        
+        core.encrypt.withCodebooks(
+            codebookIDs,
+            
+            new $.nodejs.buffer.Buffer('abcdefg', 'ascii'),
+
+            callback
+        );
     },
 
 

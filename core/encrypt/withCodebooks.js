@@ -37,6 +37,7 @@ module.exports = function(storage, core){
                     strCodebookID = bufCodebookID.toString('hex');
                 var codebook = storage.table('codebook')(strCodebookID);
 
+                console.log(codebook);
             };
         });
 
